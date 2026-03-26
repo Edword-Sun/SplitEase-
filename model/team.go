@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 // 多个人形成一个team
 type Team struct {
@@ -13,10 +16,21 @@ type Team struct {
 	Leaders []string `gorm:"type:json; serializer:json" json:"leaders"` // 领队
 	Members []string `gorm:"type:json; serializer:json" json:"members"` // 成员
 
-	CreatedTime time.Time `gorm:"type:timestamp with time zone;not null" json:"create_time"`
-	UpdatedTime time.Time `gorm:"type:timestamp with time zone;not null" json:"update_time"`
+	CreateTime time.Time `gorm:"type:timestamp with time zone;not null" json:"create_time"`
+	UpdateTime time.Time `gorm:"type:timestamp with time zone;not null" json:"update_time"`
 }
 
 func (t *Team) TableName() string {
 	return "team"
+}
+
+func (t *Team) BeforeCreate(tx *gorm.DB) (err error) {
+	t.CreateTime = time.Now()
+	t.UpdateTime = time.Now()
+	return nil
+}
+
+func (t *Team) BeforeUpdate(tx *gorm.DB) (err error) {
+	t.UpdateTime = time.Now()
+	return nil
 }
