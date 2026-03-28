@@ -1,34 +1,43 @@
 package router
 
 import (
+	"errors"
 	"log"
 	"net/http"
+	"unicode"
 
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
 
 	"split_ease/model"
 	"split_ease/repository"
+	"split_ease/utils/crypto"
 )
 
 type UserHandler struct {
-	repo *repository.UserRepository
+	repo   *repository.UserRepository
+	crypto *crypto.HashCrypto
 }
 
-func NewUserHandler(repo *repository.UserRepository) *UserHandler {
+func NewUserHandler(repo *repository.UserRepository, crypto *crypto.HashCrypto) *UserHandler {
 	return &UserHandler{
-		repo: repo,
+		repo:   repo,
+		crypto: crypto,
 	}
 }
 
 func (h *UserHandler) Init(engine *gin.Engine) {
 	g := engine.Group("/user")
 	{
-		g.POST("/add", h.Add)
+		//g.POST("/add", h.Add)
+		g.POST("/register", h.Register)
+		g.POST("/login", h.Login)
 		g.POST("/find_by_id", h.FindByID)
 		g.POST("/update_by_id", h.UpdateByID)
 		g.POST("/delete_by_id", h.DeleteByID)
 
+		// todo 管理功能
+		//g.POST("/list", h.List)
 	}
 }
 
@@ -53,6 +62,84 @@ func (h *UserHandler) Add(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "success",
 		"data":    request,
+	})
+}
+
+// 注册
+func (h *UserHandler) Register(c *gin.Context) {
+	request := struct {
+		User     model.User `json:"user"`
+		IsSimple int        `json:"is_simple"` // 1: false, 2: true
+	}{}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	id := uuid.NewV4().String()
+	request.User.ID = id
+	//request.CreateTime = time.Now()
+	//request.UpdateTime = time.Now()
+
+	if request.IsSimple == 1 {
+		// 验证密码规范
+		if err := validatePassword(request.User.Password); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	// 密码哈希加密
+	hashedPassword, err := h.crypto.HashPassword(request.User.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "密码加密失败"})
+		return
+	}
+	request.User.Password = hashedPassword
+
+	if err = h.repo.Create(&request.User); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "success",
+		"data":    request,
+	})
+}
+
+// 登入
+func (h *UserHandler) Login(c *gin.Context) {
+	var request = struct {
+		Identity string `json:"identity"` // 可以是用户名、邮箱或手机号
+		Password string `json:"password"`
+	}{}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 1. 查找用户 (支持多种身份标识)
+	err, user := h.repo.FindByIdentity(request.Identity)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 2. 验证密码
+	if !h.crypto.CheckPasswordHash(request.Password, user.Password) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "密码错误"})
+		return
+	}
+
+	// 登录成功，清除敏感信息后返回
+	user.Password = ""
+	c.JSON(http.StatusOK, gin.H{
+		"message": "success",
+		"data":    user,
 	})
 }
 
@@ -115,5 +202,41 @@ func (h *UserHandler) DeleteByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "success", "data": request})
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
+}
+
+// validatePassword 验证密码规范：至少8位，包含大小写、数字和特殊字符
+func validatePassword(password string) error {
+	if len(password) < 8 {
+		return errors.New("密码长度至少为8位")
+	}
+
+	var hasUpper, hasLower, hasNumber, hasSpecial bool
+	for _, char := range password {
+		switch {
+		case unicode.IsUpper(char):
+			hasUpper = true
+		case unicode.IsLower(char):
+			hasLower = true
+		case unicode.IsDigit(char):
+			hasNumber = true
+		case unicode.IsPunct(char) || unicode.IsSymbol(char):
+			hasSpecial = true
+		}
+	}
+
+	if !hasUpper {
+		return errors.New("密码必须包含大写字母")
+	}
+	if !hasLower {
+		return errors.New("密码必须包含小写字母")
+	}
+	if !hasNumber {
+		return errors.New("密码必须包含数字")
+	}
+	if !hasSpecial {
+		return errors.New("密码必须包含特殊字符")
+	}
+
+	return nil
 }

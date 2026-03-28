@@ -97,3 +97,106 @@ func TestBillRouter_All(t *testing.T) {
 
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
+
+func TestBillRouter_Add(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db, mock, sqlDB := setupBillRouterMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &repository.BillRepository{DB: db}
+	handler := NewBillHandler(repo)
+	r := gin.Default()
+	handler.Init(r)
+
+	bill := model.Bill{Name: "Test Bill", CostCent: 100}
+	body, _ := json.Marshal(bill)
+
+	mock.ExpectBegin()
+	mock.ExpectExec("INSERT INTO `bill`").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	req, _ := http.NewRequest("POST", "/bill/add", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestBillRouter_FindByID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db, mock, sqlDB := setupBillRouterMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &repository.BillRepository{DB: db}
+	handler := NewBillHandler(repo)
+	r := gin.Default()
+	handler.Init(r)
+
+	billID := "test-id"
+	body, _ := json.Marshal(map[string]string{"id": billID})
+
+	rows := sqlmock.NewRows([]string{"id", "name"}).AddRow(billID, "Test Bill")
+	mock.ExpectQuery("SELECT \\* FROM `bill` WHERE id = \\?").WithArgs(billID, 1).WillReturnRows(rows)
+
+	req, _ := http.NewRequest("POST", "/bill/find_by_id", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestBillRouter_UpdateByID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db, mock, sqlDB := setupBillRouterMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &repository.BillRepository{DB: db}
+	handler := NewBillHandler(repo)
+	r := gin.Default()
+	handler.Init(r)
+
+	bill := model.Bill{ID: "test-id", Name: "Updated Bill"}
+	body, _ := json.Marshal(bill)
+
+	mock.ExpectBegin()
+	mock.ExpectExec("UPDATE `bill` SET").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	req, _ := http.NewRequest("POST", "/bill/update_by_id", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestBillRouter_DeleteByID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db, mock, sqlDB := setupBillRouterMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &repository.BillRepository{DB: db}
+	handler := NewBillHandler(repo)
+	r := gin.Default()
+	handler.Init(r)
+
+	billID := "test-id"
+	body, _ := json.Marshal(map[string]string{"id": billID})
+
+	mock.ExpectBegin()
+	mock.ExpectExec("DELETE FROM `bill` WHERE id = \\?").WithArgs(billID).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	req, _ := http.NewRequest("POST", "/bill/delete_by_id", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}

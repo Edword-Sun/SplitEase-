@@ -40,6 +40,9 @@ func (r *TeamRepository) FindByID(id string) (error, *model.Team) {
 	result := model.Team{}
 	err := query.Where("id = ?", id).First(&result).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("数据不存在"), nil
+		}
 		log.Println(err)
 		return errors.New("内部错误"), nil
 	}

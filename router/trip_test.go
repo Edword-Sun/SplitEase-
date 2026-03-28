@@ -97,3 +97,106 @@ func TestTripRouter_All(t *testing.T) {
 
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
+
+func TestTripRouter_Add(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db, mock, sqlDB := setupTripRouterMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &repository.TripRepository{DB: db}
+	handler := NewTripHandler(repo)
+	r := gin.Default()
+	handler.Init(r)
+
+	trip := model.Trip{Name: "Test Trip"}
+	body, _ := json.Marshal(trip)
+
+	mock.ExpectBegin()
+	mock.ExpectExec("INSERT INTO `trip`").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	req, _ := http.NewRequest("POST", "/trip/add", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestTripRouter_FindByID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db, mock, sqlDB := setupTripRouterMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &repository.TripRepository{DB: db}
+	handler := NewTripHandler(repo)
+	r := gin.Default()
+	handler.Init(r)
+
+	tripID := "test-id"
+	body, _ := json.Marshal(map[string]string{"id": tripID})
+
+	rows := sqlmock.NewRows([]string{"id", "name"}).AddRow(tripID, "Test Trip")
+	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE id = \\?").WithArgs(tripID, 1).WillReturnRows(rows)
+
+	req, _ := http.NewRequest("POST", "/trip/find_by_id", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestTripRouter_UpdateByID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db, mock, sqlDB := setupTripRouterMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &repository.TripRepository{DB: db}
+	handler := NewTripHandler(repo)
+	r := gin.Default()
+	handler.Init(r)
+
+	trip := model.Trip{ID: "test-id", Name: "Updated Trip"}
+	body, _ := json.Marshal(trip)
+
+	mock.ExpectBegin()
+	mock.ExpectExec("UPDATE `trip` SET").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	req, _ := http.NewRequest("POST", "/trip/update_by_id", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestTripRouter_DeleteByID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db, mock, sqlDB := setupTripRouterMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &repository.TripRepository{DB: db}
+	handler := NewTripHandler(repo)
+	r := gin.Default()
+	handler.Init(r)
+
+	tripID := "test-id"
+	body, _ := json.Marshal(map[string]string{"id": tripID})
+
+	mock.ExpectBegin()
+	mock.ExpectExec("DELETE FROM `trip` WHERE id = \\?").WithArgs(tripID).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	req, _ := http.NewRequest("POST", "/trip/delete_by_id", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}

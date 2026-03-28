@@ -97,3 +97,106 @@ func TestTeamRouter_All(t *testing.T) {
 
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
+
+func TestTeamRouter_Add(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db, mock, sqlDB := setupTeamRouterMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &repository.TeamRepository{DB: db}
+	handler := NewTeamHandler(repo)
+	r := gin.Default()
+	handler.Init(r)
+
+	team := model.Team{Name: "Test Team"}
+	body, _ := json.Marshal(team)
+
+	mock.ExpectBegin()
+	mock.ExpectExec("INSERT INTO `team`").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	req, _ := http.NewRequest("POST", "/team/add", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestTeamRouter_FindByID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db, mock, sqlDB := setupTeamRouterMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &repository.TeamRepository{DB: db}
+	handler := NewTeamHandler(repo)
+	r := gin.Default()
+	handler.Init(r)
+
+	teamID := "test-id"
+	body, _ := json.Marshal(map[string]string{"id": teamID})
+
+	rows := sqlmock.NewRows([]string{"id", "name"}).AddRow(teamID, "Test Team")
+	mock.ExpectQuery("SELECT \\* FROM `team` WHERE id = \\?").WithArgs(teamID, 1).WillReturnRows(rows)
+
+	req, _ := http.NewRequest("POST", "/team/find_by_id", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestTeamRouter_UpdateByID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db, mock, sqlDB := setupTeamRouterMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &repository.TeamRepository{DB: db}
+	handler := NewTeamHandler(repo)
+	r := gin.Default()
+	handler.Init(r)
+
+	team := model.Team{ID: "test-id", Name: "Updated Team"}
+	body, _ := json.Marshal(team)
+
+	mock.ExpectBegin()
+	mock.ExpectExec("UPDATE `team` SET").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	req, _ := http.NewRequest("POST", "/team/update_by_id", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestTeamRouter_DeleteByID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db, mock, sqlDB := setupTeamRouterMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &repository.TeamRepository{DB: db}
+	handler := NewTeamHandler(repo)
+	r := gin.Default()
+	handler.Init(r)
+
+	teamID := "test-id"
+	body, _ := json.Marshal(map[string]string{"id": teamID})
+
+	mock.ExpectBegin()
+	mock.ExpectExec("DELETE FROM `team` WHERE id = \\?").WithArgs(teamID).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	req, _ := http.NewRequest("POST", "/team/delete_by_id", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}

@@ -40,11 +40,29 @@ func (r *UserRepository) FindByID(id string) (error, *model.User) {
 	result := model.User{}
 	err := query.Where("id = ?", id).First(&result).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("数据不存在"), nil
+		}
 		log.Println(err)
 		return errors.New("内部错误"), nil
 	}
 	return nil, &result
 }
+
+func (r *UserRepository) FindByIdentity(identity string) (error, *model.User) {
+	query := r.DB.Model(&model.User{})
+	result := model.User{}
+	err := query.Where("account_name = ? OR email = ? OR phone_number = ?", identity, identity, identity).First(&result).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("用户不存在"), nil
+		}
+		log.Println(err)
+		return errors.New("内部错误"), nil
+	}
+	return nil, &result
+}
+
 func (r *UserRepository) UpdateByID(user *model.User) error {
 	if user == nil {
 		log.Println("nil pointer")

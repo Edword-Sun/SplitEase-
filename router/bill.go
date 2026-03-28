@@ -115,5 +115,5 @@ func (h *BillHandler) DeleteByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "success", "data": request})
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }

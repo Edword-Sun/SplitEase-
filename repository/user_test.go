@@ -103,6 +103,26 @@ func TestUserRepository_FindByID(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
+func TestUserRepository_FindByIdentity(t *testing.T) {
+	db, mock, sqlDB := setupUserMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &UserRepository{DB: db}
+	identity := "test-identity"
+
+	rows := sqlmock.NewRows([]string{"id", "account_name", "email", "phone_number"}).
+		AddRow("test-id", identity, "test@example.com", "1234567890")
+
+	mock.ExpectQuery("SELECT \\* FROM `user` WHERE account_name = \\? OR email = \\? OR phone_number = \\?").
+		WithArgs(identity, identity, identity, 1).
+		WillReturnRows(rows)
+
+	err, user := repo.FindByIdentity(identity)
+	assert.NoError(t, err)
+	assert.NotNil(t, user)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
 func TestUserRepository_UpdateByID(t *testing.T) {
 	db, mock, sqlDB := setupUserMockDB(t)
 	defer sqlDB.Close()
