@@ -29,6 +29,7 @@ func (h *BillHandler) Init(engine *gin.Engine) {
 		g.POST("/update_by_id", h.UpdateByID)
 		g.POST("/delete_by_id", h.DeleteByID)
 
+		// todo list: creator, create_time, category,
 	}
 }
 

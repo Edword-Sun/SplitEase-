@@ -29,6 +29,8 @@ func (h *TripHandler) Init(engine *gin.Engine) {
 		g.POST("/update_by_id", h.UpdateByID)
 		g.POST("/delete_by_id", h.DeleteByID)
 
+		// split: 分账
+		//g.POST("/split", h.Split)
 	}
 }
 
@@ -117,3 +119,19 @@ func (h *TripHandler) DeleteByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }
+
+//func (h *TripHandler) Split(c *gin.Context) {
+//	result := struct {
+//		// a to b cost
+//		// {"id id money"}
+//		res []string
+//	}{}
+//
+//	err := h.repo.DeleteByID(request.ID)
+//	if err != nil {
+//		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+//		return
+//	}
+//
+//	c.JSON(http.StatusOK, gin.H{"message": "success"})
+//}
