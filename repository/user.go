@@ -2,8 +2,9 @@ package repository
 
 import (
 	"errors"
-	"gorm.io/gorm"
 	"log"
+
+	"gorm.io/gorm"
 
 	"split_ease/config"
 	"split_ease/model"
@@ -21,6 +22,10 @@ func NewUserRepository() *UserRepository {
 
 // Create creates a new record in the database.
 func (r *UserRepository) Create(user *model.User) error {
+	if user == nil {
+		log.Println("nil pointer")
+		return errors.New("nil pointer")
+	}
 	query := r.DB.Model(&model.User{})
 	err := query.Create(user).Error
 	if err != nil {
@@ -40,8 +45,12 @@ func (r *UserRepository) FindByID(id string) (error, *model.User) {
 	}
 	return nil, &result
 }
-func (r *UserRepository) Update(user *model.User) error {
-	query := r.DB.Model(&model.User{})
+func (r *UserRepository) UpdateByID(user *model.User) error {
+	if user == nil {
+		log.Println("nil pointer")
+		return errors.New("nil pointer")
+	}
+	query := r.DB.Model(&model.User{}).Where("id = ?", user.ID)
 	err := query.Updates(user).Error
 	if err != nil {
 		log.Println(err)

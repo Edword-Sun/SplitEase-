@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 // 以一次trip为一组记账的对象
 type Trip struct {
@@ -10,10 +13,21 @@ type Trip struct {
 	Description string `gorm:"type:text" json:"description"`
 	Creator     string `gorm:"type:text" json:"creator"` // 创建者
 
-	CreatedTime time.Time `gorm:"type:timestamp with time zone;not null" json:"create_time"`
-	UpdatedTime time.Time `gorm:"type:timestamp with time zone;not null" json:"update_time"`
+	CreateTime time.Time `gorm:"type:timestamp with time zone;not null" json:"create_time"`
+	UpdateTime time.Time `gorm:"type:timestamp with time zone;not null" json:"update_time"`
 }
 
 func (t *Trip) TableName() string {
 	return "trip"
+}
+
+func (t *Trip) BeforeCreate(tx *gorm.DB) (err error) {
+	t.CreateTime = time.Now()
+	t.UpdateTime = time.Now()
+	return nil
+}
+
+func (t *Trip) BeforeUpdate(tx *gorm.DB) (err error) {
+	t.UpdateTime = time.Now()
+	return nil
 }

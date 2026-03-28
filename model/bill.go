@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 type Bill struct {
 	ID          string `gorm:"primarykey type:text;default:gen_random_uuid()" json:"id"`
@@ -13,10 +16,21 @@ type Bill struct {
 	TeamID  string `gorm:"type:text" json:"team_id"`    // 属于的team
 	Creator string `gorm:"type:creator" json:"creator"` // 创建者
 
-	CreatedTime time.Time `gorm:"type:timestamp with time zone;not null" json:"create_time"`
-	UpdatedTime time.Time `gorm:"type:timestamp with time zone;not null" json:"update_time"`
+	CreateTime time.Time `gorm:"type:timestamp with time zone;not null" json:"create_time"`
+	UpdateTime time.Time `gorm:"type:timestamp with time zone;not null" json:"update_time"`
 }
 
 func (b *Bill) TableName() string {
 	return "bill"
+}
+
+func (b *Bill) BeforeCreate(tx *gorm.DB) (err error) {
+	b.CreateTime = time.Now()
+	b.UpdateTime = time.Now()
+	return nil
+}
+
+func (b *Bill) BeforeUpdate(tx *gorm.DB) (err error) {
+	b.UpdateTime = time.Now()
+	return nil
 }

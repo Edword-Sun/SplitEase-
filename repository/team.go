@@ -2,8 +2,9 @@ package repository
 
 import (
 	"errors"
-	"gorm.io/gorm"
 	"log"
+
+	"gorm.io/gorm"
 
 	"split_ease/config"
 	"split_ease/model"
@@ -21,6 +22,10 @@ func NewTeamRepository() *TeamRepository {
 
 // Create creates a new record in the database.
 func (r *TeamRepository) Create(team *model.Team) error {
+	if team == nil {
+		log.Println("nil pointer")
+		return errors.New("nil pointer")
+	}
 	query := r.DB.Model(&model.Team{})
 	err := query.Create(team).Error
 	if err != nil {
@@ -40,8 +45,12 @@ func (r *TeamRepository) FindByID(id string) (error, *model.Team) {
 	}
 	return nil, &result
 }
-func (r *TeamRepository) Update(team *model.Team) error {
-	query := r.DB.Model(&model.Team{})
+func (r *TeamRepository) UpdateByID(team *model.Team) error {
+	if team == nil {
+		log.Println("nil pointer")
+		return errors.New("nil pointer")
+	}
+	query := r.DB.Model(&model.Team{}).Where("id = ?", team.ID)
 	err := query.Updates(team).Error
 	if err != nil {
 		log.Println(err)
