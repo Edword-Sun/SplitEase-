@@ -1,12 +1,13 @@
 package router
 
 import (
-	"github.com/gin-gonic/gin"
-	uuid "github.com/satori/go.uuid"
 	"log"
 	"net/http"
-	"split_ease/model"
 
+	"github.com/gin-gonic/gin"
+	uuid "github.com/satori/go.uuid"
+
+	"split_ease/model"
 	"split_ease/repository"
 )
 
@@ -57,7 +58,7 @@ func (h *BillHandler) Add(c *gin.Context) {
 
 func (h *BillHandler) FindByID(c *gin.Context) {
 	var request = struct {
-		id string `json:"id"`
+		ID string `json:"id"`
 	}{}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -66,7 +67,7 @@ func (h *BillHandler) FindByID(c *gin.Context) {
 		return
 	}
 
-	err, result := h.repo.FindByID(request.id)
+	err, result := h.repo.FindByID(request.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
