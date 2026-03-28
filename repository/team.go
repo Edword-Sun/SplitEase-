@@ -22,6 +22,10 @@ func NewTeamRepository() *TeamRepository {
 
 // Create creates a new record in the database.
 func (r *TeamRepository) Create(team *model.Team) error {
+	if team == nil {
+		log.Println("nil pointer")
+		return errors.New("nil pointer")
+	}
 	query := r.DB.Model(&model.Team{})
 	err := query.Create(team).Error
 	if err != nil {
@@ -41,7 +45,11 @@ func (r *TeamRepository) FindByID(id string) (error, *model.Team) {
 	}
 	return nil, &result
 }
-func (r *TeamRepository) Update(team *model.Team) error {
+func (r *TeamRepository) UpdateByID(team *model.Team) error {
+	if team == nil {
+		log.Println("nil pointer")
+		return errors.New("nil pointer")
+	}
 	query := r.DB.Model(&model.Team{})
 	err := query.Updates(team).Error
 	if err != nil {

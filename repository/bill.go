@@ -22,6 +22,10 @@ func NewBillRepository() *BillRepository {
 
 // Create creates a new record in the database.
 func (r *BillRepository) Create(bill *model.Bill) error {
+	if bill == nil {
+		log.Println("nil pointer")
+		return errors.New("nil pointer")
+	}
 	query := r.DB.Model(&model.Bill{})
 	err := query.Create(bill).Error
 	if err != nil {
@@ -41,7 +45,11 @@ func (r *BillRepository) FindByID(id string) (error, *model.Bill) {
 	}
 	return nil, &result
 }
-func (r *BillRepository) Update(bill *model.Bill) error {
+func (r *BillRepository) UpdateByID(bill *model.Bill) error {
+	if bill == nil {
+		log.Println("指针为空")
+		return errors.New("指针为空")
+	}
 	query := r.DB.Model(&model.Bill{})
 	err := query.Updates(bill).Error
 	if err != nil {

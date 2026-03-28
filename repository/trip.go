@@ -22,6 +22,10 @@ func NewTripRepository() *TripRepository {
 
 // Create creates a new record in the database.
 func (r *TripRepository) Create(trip *model.Trip) error {
+	if trip == nil {
+		log.Println("nil pointer")
+		return errors.New("nil pointer")
+	}
 	query := r.DB.Model(&model.Trip{})
 	err := query.Create(trip).Error
 	if err != nil {
@@ -41,7 +45,11 @@ func (r *TripRepository) FindByID(id string) (error, *model.Trip) {
 	}
 	return nil, &result
 }
-func (r *TripRepository) Update(trip *model.Trip) error {
+func (r *TripRepository) UpdateByID(trip *model.Trip) error {
+	if trip == nil {
+		log.Println("nil pointer")
+		return errors.New("nil pointer")
+	}
 	query := r.DB.Model(&model.Trip{})
 	err := query.Updates(trip).Error
 	if err != nil {
