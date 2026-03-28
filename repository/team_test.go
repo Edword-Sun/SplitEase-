@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"split_ease/model"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -55,12 +56,26 @@ func TestTeamRepository_All(t *testing.T) {
 	mock.ExpectCommit()
 
 	// Execute All
-	assert.NoError(t, repo.Create(team))
+	start := time.Now()
+	err := repo.Create(team)
+	logRepoCall(t, "TeamRepository.Create", start, err)
+	assert.NoError(t, err)
+
+	start = time.Now()
 	err, foundTeam := repo.FindByID(team.ID)
+	logRepoCall(t, "TeamRepository.FindByID", start, err)
 	assert.NoError(t, err)
 	assert.Equal(t, team.Name, foundTeam.Name)
-	assert.NoError(t, repo.UpdateByID(team))
-	assert.NoError(t, repo.DeleteByID(team.ID))
+
+	start = time.Now()
+	err = repo.UpdateByID(team)
+	logRepoCall(t, "TeamRepository.UpdateByID", start, err)
+	assert.NoError(t, err)
+
+	start = time.Now()
+	err = repo.DeleteByID(team.ID)
+	logRepoCall(t, "TeamRepository.DeleteByID", start, err)
+	assert.NoError(t, err)
 
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
@@ -77,7 +92,9 @@ func TestTeamRepository_Create(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
+	start := time.Now()
 	err := repo.Create(team)
+	logRepoCall(t, "TeamRepository.Create", start, err)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
@@ -96,7 +113,9 @@ func TestTeamRepository_FindByID(t *testing.T) {
 		WithArgs(teamID, 1).
 		WillReturnRows(rows)
 
+	start := time.Now()
 	err, team := repo.FindByID(teamID)
+	logRepoCall(t, "TeamRepository.FindByID", start, err)
 	assert.NoError(t, err)
 	assert.NotNil(t, team)
 	assert.Equal(t, teamID, team.ID)
@@ -115,7 +134,9 @@ func TestTeamRepository_UpdateByID(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
+	start := time.Now()
 	err := repo.UpdateByID(team)
+	logRepoCall(t, "TeamRepository.UpdateByID", start, err)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
@@ -133,7 +154,9 @@ func TestTeamRepository_DeleteByID(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
+	start := time.Now()
 	err := repo.DeleteByID(teamID)
+	logRepoCall(t, "TeamRepository.DeleteByID", start, err)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }

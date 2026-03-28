@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"split_ease/model"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -55,12 +56,26 @@ func TestBillRepository_All(t *testing.T) {
 	mock.ExpectCommit()
 
 	// Execute All
-	assert.NoError(t, repo.Create(bill))
+	start := time.Now()
+	err := repo.Create(bill)
+	logRepoCall(t, "BillRepository.Create", start, err)
+	assert.NoError(t, err)
+
+	start = time.Now()
 	err, foundBill := repo.FindByID(bill.ID)
+	logRepoCall(t, "BillRepository.FindByID", start, err)
 	assert.NoError(t, err)
 	assert.Equal(t, bill.Name, foundBill.Name)
-	assert.NoError(t, repo.UpdateByID(bill))
-	assert.NoError(t, repo.DeleteByID(bill.ID))
+
+	start = time.Now()
+	err = repo.UpdateByID(bill)
+	logRepoCall(t, "BillRepository.UpdateByID", start, err)
+	assert.NoError(t, err)
+
+	start = time.Now()
+	err = repo.DeleteByID(bill.ID)
+	logRepoCall(t, "BillRepository.DeleteByID", start, err)
+	assert.NoError(t, err)
 
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
@@ -77,7 +92,9 @@ func TestBillRepository_Create(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
+	start := time.Now()
 	err := repo.Create(bill)
+	logRepoCall(t, "BillRepository.Create", start, err)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
@@ -96,7 +113,9 @@ func TestBillRepository_FindByID(t *testing.T) {
 		WithArgs(billID, 1).
 		WillReturnRows(rows)
 
+	start := time.Now()
 	err, bill := repo.FindByID(billID)
+	logRepoCall(t, "BillRepository.FindByID", start, err)
 	assert.NoError(t, err)
 	assert.NotNil(t, bill)
 	assert.Equal(t, billID, bill.ID)
@@ -116,7 +135,9 @@ func TestBillRepository_UpdateByID(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
+	start := time.Now()
 	err := repo.UpdateByID(bill)
+	logRepoCall(t, "BillRepository.UpdateByID", start, err)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
@@ -134,7 +155,9 @@ func TestBillRepository_DeleteByID(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
+	start := time.Now()
 	err := repo.DeleteByID(billID)
+	logRepoCall(t, "BillRepository.DeleteByID", start, err)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }

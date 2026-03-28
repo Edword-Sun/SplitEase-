@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"split_ease/model"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -44,23 +45,51 @@ func TestUserRepository_All(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"id", "name"}).AddRow(user.ID, user.Name)
 	mock.ExpectQuery("SELECT \\* FROM `user` WHERE id = \\?").WithArgs(user.ID, 1).WillReturnRows(rows)
 
-	// 3. Update
+	// 3. FindByIdentity
+	identity := "test-identity"
+	identityRows := sqlmock.NewRows([]string{"id", "account_name", "email", "phone_number"}).
+		AddRow(user.ID, identity, "test@example.com", "1234567890")
+	mock.ExpectQuery("SELECT \\* FROM `user` WHERE account_name = \\? OR email = \\? OR phone_number = \\?").
+		WithArgs(identity, identity, identity, 1).
+		WillReturnRows(identityRows)
+
+	// 4. Update
 	mock.ExpectBegin()
 	mock.ExpectExec("UPDATE `user` SET").WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
-	// 4. Delete
+	// 5. Delete
 	mock.ExpectBegin()
 	mock.ExpectExec("DELETE FROM `user` WHERE id = \\?").WithArgs(user.ID).WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	// Execute All
-	assert.NoError(t, repo.Create(user))
+	start := time.Now()
+	err := repo.Create(user)
+	logRepoCall(t, "UserRepository.Create", start, err)
+	assert.NoError(t, err)
+
+	start = time.Now()
 	err, foundUser := repo.FindByID(user.ID)
+	logRepoCall(t, "UserRepository.FindByID", start, err)
 	assert.NoError(t, err)
 	assert.Equal(t, user.Name, foundUser.Name)
-	assert.NoError(t, repo.UpdateByID(user))
-	assert.NoError(t, repo.DeleteByID(user.ID))
+
+	start = time.Now()
+	err, foundUserByIdentity := repo.FindByIdentity(identity)
+	logRepoCall(t, "UserRepository.FindByIdentity", start, err)
+	assert.NoError(t, err)
+	assert.NotNil(t, foundUserByIdentity)
+
+	start = time.Now()
+	err = repo.UpdateByID(user)
+	logRepoCall(t, "UserRepository.UpdateByID", start, err)
+	assert.NoError(t, err)
+
+	start = time.Now()
+	err = repo.DeleteByID(user.ID)
+	logRepoCall(t, "UserRepository.DeleteByID", start, err)
+	assert.NoError(t, err)
 
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
@@ -77,7 +106,9 @@ func TestUserRepository_Create(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
+	start := time.Now()
 	err := repo.Create(user)
+	logRepoCall(t, "UserRepository.Create", start, err)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
@@ -96,7 +127,9 @@ func TestUserRepository_FindByID(t *testing.T) {
 		WithArgs(userID, 1).
 		WillReturnRows(rows)
 
+	start := time.Now()
 	err, user := repo.FindByID(userID)
+	logRepoCall(t, "UserRepository.FindByID", start, err)
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
 	assert.Equal(t, userID, user.ID)
@@ -117,7 +150,9 @@ func TestUserRepository_FindByIdentity(t *testing.T) {
 		WithArgs(identity, identity, identity, 1).
 		WillReturnRows(rows)
 
+	start := time.Now()
 	err, user := repo.FindByIdentity(identity)
+	logRepoCall(t, "UserRepository.FindByIdentity", start, err)
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
 	assert.NoError(t, mock.ExpectationsWereMet())
@@ -135,7 +170,9 @@ func TestUserRepository_UpdateByID(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
+	start := time.Now()
 	err := repo.UpdateByID(user)
+	logRepoCall(t, "UserRepository.UpdateByID", start, err)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
@@ -153,7 +190,9 @@ func TestUserRepository_DeleteByID(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
+	start := time.Now()
 	err := repo.DeleteByID(userID)
+	logRepoCall(t, "UserRepository.DeleteByID", start, err)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
