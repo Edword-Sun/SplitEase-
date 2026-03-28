@@ -2,8 +2,9 @@ package repository
 
 import (
 	"errors"
-	"gorm.io/gorm"
 	"log"
+
+	"gorm.io/gorm"
 
 	"split_ease/config"
 	"split_ease/model"
