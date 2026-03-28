@@ -6,7 +6,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"split_ease/config"
 	"split_ease/model"
 )
 
@@ -14,9 +13,9 @@ type BillRepository struct {
 	DB *gorm.DB
 }
 
-func NewBillRepository() *BillRepository {
+func NewBillRepository(db *gorm.DB) *BillRepository {
 	return &BillRepository{
-		DB: config.DB,
+		DB: db,
 	}
 }
 

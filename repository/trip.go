@@ -6,7 +6,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"split_ease/config"
 	"split_ease/model"
 )
 
@@ -14,9 +13,9 @@ type TripRepository struct {
 	DB *gorm.DB
 }
 
-func NewTripRepository() *TripRepository {
+func NewTripRepository(db *gorm.DB) *TripRepository {
 	return &TripRepository{
-		DB: config.DB,
+		DB: db,
 	}
 }
 

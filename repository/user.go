@@ -6,7 +6,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"split_ease/config"
 	"split_ease/model"
 )
 
@@ -14,9 +13,9 @@ type UserRepository struct {
 	DB *gorm.DB
 }
 
-func NewUserRepository() *UserRepository {
+func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{
-		DB: config.DB,
+		DB: db,
 	}
 }
 

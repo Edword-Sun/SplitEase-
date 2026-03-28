@@ -6,7 +6,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"split_ease/config"
 	"split_ease/model"
 )
 
@@ -14,9 +13,9 @@ type TeamRepository struct {
 	DB *gorm.DB
 }
 
-func NewTeamRepository() *TeamRepository {
+func NewTeamRepository(db *gorm.DB) *TeamRepository {
 	return &TeamRepository{
-		DB: config.DB,
+		DB: db,
 	}
 }
 
