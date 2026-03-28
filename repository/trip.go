@@ -50,7 +50,7 @@ func (r *TripRepository) UpdateByID(trip *model.Trip) error {
 		log.Println("nil pointer")
 		return errors.New("nil pointer")
 	}
-	query := r.DB.Model(&model.Trip{})
+	query := r.DB.Model(&model.Trip{}).Where("id = ?", trip.ID)
 	err := query.Updates(trip).Error
 	if err != nil {
 		log.Println(err)

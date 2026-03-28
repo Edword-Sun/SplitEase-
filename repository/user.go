@@ -50,7 +50,7 @@ func (r *UserRepository) UpdateByID(user *model.User) error {
 		log.Println("nil pointer")
 		return errors.New("nil pointer")
 	}
-	query := r.DB.Model(&model.User{})
+	query := r.DB.Model(&model.User{}).Where("id = ?", user.ID)
 	err := query.Updates(user).Error
 	if err != nil {
 		log.Println(err)

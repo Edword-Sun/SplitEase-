@@ -50,7 +50,7 @@ func (r *TeamRepository) UpdateByID(team *model.Team) error {
 		log.Println("nil pointer")
 		return errors.New("nil pointer")
 	}
-	query := r.DB.Model(&model.Team{})
+	query := r.DB.Model(&model.Team{}).Where("id = ?", team.ID)
 	err := query.Updates(team).Error
 	if err != nil {
 		log.Println(err)

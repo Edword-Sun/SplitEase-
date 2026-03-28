@@ -50,7 +50,7 @@ func (r *BillRepository) UpdateByID(bill *model.Bill) error {
 		log.Println("指针为空")
 		return errors.New("指针为空")
 	}
-	query := r.DB.Model(&model.Bill{})
+	query := r.DB.Model(&model.Bill{}).Where("id = ?", bill.ID)
 	err := query.Updates(bill).Error
 	if err != nil {
 		log.Println(err)
