@@ -15,6 +15,7 @@ const LoginPage = () => {
     password: '',
     email: '',
     phone_number: '',
+    is_simple: 1, // 1: standard (false), 2: simple (true)
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,20 +25,30 @@ const LoginPage = () => {
 
     try {
       if (isLogin) {
-        // According to README: POST /login
+        // According to user: POST /login accepts { identity, password }
         const response = await api.post('/user/login', {
-          account_name: formData.account_name,
+          identity: formData.account_name,
           password: formData.password,
         });
         
         // Mock token since actual API might not return it based on README
-        const user = response.data;
+        const user = response.data.data || response.data;
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('token', 'mock_token');
         navigate('/');
       } else {
-        // According to README: POST /register
-        const response = await api.post('/user/register', formData);
+        // According to router/user.go: POST /register
+        const registerData = {
+          user: {
+            name: formData.name,
+            account_name: formData.account_name,
+            password: formData.password,
+            email: formData.email,
+            phone_number: formData.phone_number,
+          },
+          is_simple: formData.is_simple,
+        };
+        const response = await api.post('/user/register', registerData);
         const user = response.data;
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('token', 'mock_token');
@@ -115,6 +126,21 @@ const LoginPage = () => {
             </div>
 
             {!isLogin && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="is_simple"
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  checked={formData.is_simple === 2}
+                  onChange={(e) => setFormData({ ...formData, is_simple: e.target.checked ? 2 : 1 })}
+                />
+                <label htmlFor="is_simple" className="text-sm text-gray-600 font-medium">
+                  启用简易模式 (跳过密码规范校验)
+                </label>
+              </div>
+            )}
+
+            {!isLogin && (
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">邮箱</label>
@@ -158,9 +184,41 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
+              className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 transition-all shadow-lg shadow-blue-100 active:scale-[0.98]"
             >
               {loading ? '正在处理...' : isLogin ? '立即登录' : '注册账号'}
+            </button>
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-100"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-gray-400 font-bold tracking-wider">或者</span>
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="button"
+              onClick={() => {
+                const guestId = `guest_${Math.random().toString(36).substring(2, 9)}`;
+                const guestUser = {
+                  id: guestId,
+                  name: `游客_${guestId.substring(6)}`,
+                  account_name: 'guest',
+                  email: 'guest@splitease.com',
+                  phone_number: '00000000000',
+                  isGuest: true
+                };
+                localStorage.setItem('user', JSON.stringify(guestUser));
+                localStorage.setItem('token', 'guest_token');
+                navigate('/');
+              }}
+              className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border-2 border-gray-100 text-sm font-bold rounded-xl text-gray-600 bg-white hover:bg-gray-50 hover:border-gray-200 transition-all active:scale-[0.98]"
+            >
+              <span>以游客身份进入</span>
             </button>
           </div>
         </form>

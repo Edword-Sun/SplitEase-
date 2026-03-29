@@ -1,29 +1,38 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar, Users, ChevronRight, Wallet } from 'lucide-react';
+import { Plus, Calendar, Users, ChevronRight, Wallet, MapPin, Search } from 'lucide-react';
 import api from '../api/client';
 import { Trip, User } from '../types';
+import { formatDate } from '../utils/format';
 
 const DashboardPage = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTrip, setNewTrip] = useState({ name: '', description: '' });
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
   const user: User = JSON.parse(localStorage.getItem('user') || '{}');
 
   const fetchTrips = async () => {
     try {
+      setLoading(true);
+      // Note: This API might be missing from backend, handled gracefully
       const response = await api.post('/trip/find_by_creator', { creator: user.id });
       setTrips(response.data.data || []);
     } catch (error) {
-      console.error('Failed to fetch trips:', error);
+      console.warn('Trip listing API might be missing or failed:', error);
+      setTrips([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (!user.id) {
+      navigate('/login');
+      return;
+    }
     fetchTrips();
   }, []);
 
@@ -38,66 +47,128 @@ const DashboardPage = () => {
       setShowAddModal(false);
       setNewTrip({ name: '', description: '' });
       fetchTrips();
-    } catch (error) {
-      console.error('Failed to add trip:', error);
+    } catch (error: any) {
+      alert(error.response?.data?.error || '创建失败');
     }
   };
 
+  const filteredTrips = trips.filter(trip => 
+    trip.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    trip.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 pb-20">
+      {/* Welcome Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">我的旅行</h2>
-          <p className="text-gray-500 text-sm mt-1">管理您的所有分账活动</p>
+          <h2 className="text-3xl font-black text-gray-900 tracking-tight">你好, {user.name} 👋</h2>
+          <p className="text-gray-500 font-medium mt-1">
+            {(user as any).isGuest ? '您当前处于游客模式，数据将存储在公共服务器中' : '今天想记录哪次旅行的开支？'}
+          </p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3.5 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 font-bold active:scale-95"
         >
           <Plus size={20} />
-          <span>新建旅行</span>
+          <span>创建新旅行</span>
         </button>
       </div>
 
+      {/* Search & Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2 relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <input 
+            type="text"
+            placeholder="搜索旅行名称或描述..."
+            className="w-full pl-12 pr-4 py-4 bg-white border border-gray-100 rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="bg-blue-600 rounded-2xl p-4 flex items-center justify-between text-white shadow-lg shadow-blue-100">
+          <div>
+            <p className="text-blue-100 text-xs font-bold uppercase tracking-wider">进行中</p>
+            <p className="text-2xl font-black mt-1">{trips.length} <span className="text-sm font-normal text-blue-100">个旅行</span></p>
+          </div>
+          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+            <MapPin size={24} />
+          </div>
+        </div>
+      </div>
+
+      {/* Trips Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-32 bg-gray-100 animate-pulse rounded-xl"></div>
+            <div key={i} className="h-48 bg-gray-100 animate-pulse rounded-3xl"></div>
           ))}
         </div>
-      ) : trips.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-200">
-          <div className="mx-auto w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 mb-4">
-            <Wallet size={32} />
+      ) : filteredTrips.length === 0 ? (
+        <div className="text-center py-24 bg-white rounded-[32px] border-2 border-dashed border-gray-100 shadow-sm">
+          <div className="mx-auto w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-200 mb-6">
+            <Wallet size={40} />
           </div>
-          <h3 className="text-lg font-medium text-gray-900">暂无旅行</h3>
-          <p className="text-gray-500 mt-1">点击右上角按钮开始您的第一次分账</p>
+          <h3 className="text-xl font-bold text-gray-900">暂无旅行记录</h3>
+          <p className="text-gray-400 mt-2 max-w-xs mx-auto">
+            {searchTerm ? '没有找到匹配的旅行，换个关键词试试？' : '点击右上角“创建新旅行”开始记录您的第一笔开支。'}
+          </p>
+          {searchTerm && (
+            <button 
+              onClick={() => setSearchTerm('')}
+              className="mt-4 text-blue-600 font-bold hover:underline"
+            >
+              清空搜索
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {trips.map((trip) => (
+          {filteredTrips.map((trip) => (
             <div
               key={trip.id}
               onClick={() => navigate(`/trip/${trip.id}`)}
-              className="group bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-100 transition-all cursor-pointer relative overflow-hidden"
+              className="group bg-white p-7 rounded-[32px] border border-gray-50 shadow-sm hover:shadow-xl hover:border-blue-100 hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 p-4 text-gray-300 group-hover:text-blue-500 transition-colors">
-                <ChevronRight size={24} />
+              <div className="absolute top-0 right-0 p-6 text-gray-200 group-hover:text-blue-500 transition-colors">
+                <ChevronRight size={28} />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                {trip.name}
-              </h3>
-              <p className="text-gray-500 text-sm line-clamp-2 mb-6 h-10">
-                {trip.description || '暂无描述'}
-              </p>
-              <div className="flex items-center gap-4 text-gray-400 text-xs font-medium">
-                <div className="flex items-center gap-1">
-                  <Calendar size={14} />
-                  <span>{new Date(trip.create_time).toLocaleDateString()}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Users size={14} />
-                  <span>{trip.members?.length || 0} 位成员</span>
+              
+              <div className="flex flex-col h-full">
+                <h3 className="text-xl font-black text-gray-900 mb-2 group-hover:text-blue-600 transition-colors pr-8">
+                  {trip.name}
+                </h3>
+                <p className="text-gray-400 text-sm line-clamp-2 mb-8 font-medium flex-grow">
+                  {trip.description || '这趟旅行还没有添加描述...'}
+                </p>
+                
+                <div className="flex items-center justify-between pt-6 border-t border-gray-50">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1.5 text-gray-400">
+                      <Calendar size={14} className="text-gray-300" />
+                      <span className="text-[11px] font-bold uppercase tracking-tight">{formatDate(trip.create_time).split(' ')[0]}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-gray-400">
+                      <Users size={14} className="text-gray-300" />
+                      <span className="text-[11px] font-bold uppercase tracking-tight">{trip.members?.length || 0} 成员</span>
+                    </div>
+                  </div>
+                  
+                  {/* Avatar stack mock */}
+                  <div className="flex -space-x-2">
+                    {trip.members?.slice(0, 3).map((_, i) => (
+                      <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[8px] font-bold text-gray-400">
+                        U{i+1}
+                      </div>
+                    ))}
+                    {(trip.members?.length || 0) > 3 && (
+                      <div className="w-6 h-6 rounded-full border-2 border-white bg-blue-50 flex items-center justify-center text-[8px] font-bold text-blue-400">
+                        +{(trip.members?.length || 0) - 3}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -105,50 +176,52 @@ const DashboardPage = () => {
         </div>
       )}
 
+      {/* Create Trip Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="px-6 py-4 border-b flex items-center justify-between">
-              <h3 className="text-lg font-bold text-gray-900">新建旅行</h3>
-              <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600">
-                <Plus size={24} className="rotate-45" />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-white w-full max-w-md rounded-[32px] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="px-8 py-6 border-b flex items-center justify-between bg-blue-600 text-white">
+              <h3 className="text-xl font-bold">开启新旅程</h3>
+              <button onClick={() => setShowAddModal(false)} className="hover:rotate-90 transition-all duration-300">
+                <Plus size={28} className="rotate-45" />
               </button>
             </div>
-            <form onSubmit={handleAddTrip} className="p-6 space-y-4">
+            <form onSubmit={handleAddTrip} className="p-8 space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">旅行名称</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">旅行名称</label>
                 <input
                   type="text"
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                  placeholder="如：成都五日游"
+                  autoFocus
+                  className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
+                  placeholder="例如：2026 成都美食之旅"
                   value={newTrip.name}
                   onChange={(e) => setNewTrip({ ...newTrip, name: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">描述</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">简单描述</label>
                 <textarea
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                  placeholder="简单描述一下这次旅行..."
+                  className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
+                  placeholder="这趟旅行有什么特别的计划吗？"
                   rows={3}
                   value={newTrip.description}
                   onChange={(e) => setNewTrip({ ...newTrip, description: e.target.value })}
                 />
               </div>
-              <div className="flex gap-3 mt-6">
+              <div className="flex gap-4 pt-4">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                  className="flex-1 px-6 py-4 border border-gray-100 text-gray-500 rounded-2xl hover:bg-gray-50 font-bold transition-all"
                 >
-                  取消
+                  算了吧
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm transition-colors"
+                  className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-bold shadow-xl shadow-blue-100 transition-all active:scale-95"
                 >
-                  创建
+                  立即出发
                 </button>
               </div>
             </form>
