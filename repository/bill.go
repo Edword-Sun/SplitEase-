@@ -47,6 +47,20 @@ func (r *BillRepository) FindByID(id string) (error, *model.Bill) {
 	}
 	return nil, &result
 }
+
+func (r *BillRepository) FindByTripID(tripID string) (error, []*model.Bill) {
+	query := r.DB.Model(&model.Bill{})
+	result := []*model.Bill{}
+
+	err := query.Where("trip_id = ?", tripID).Find(&result).Error
+	if err != nil {
+		log.Println(err)
+		return errors.New("内部错误"), nil
+	}
+
+	return nil, result
+}
+
 func (r *BillRepository) UpdateByID(bill *model.Bill) error {
 	if bill == nil {
 		log.Println("指针为空")

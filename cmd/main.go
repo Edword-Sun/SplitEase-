@@ -29,7 +29,7 @@ func main() {
 	userHandler := router.NewUserHandler(userRepo, hashCrypto)
 	billHandler := router.NewBillHandler(billRepo)
 	teamHandler := router.NewTeamHandler(teamRepo)
-	tripHandler := router.NewTripHandler(tripRepo)
+	tripHandler := router.NewTripHandler(tripRepo, userRepo, billRepo)
 
 	userHandler.Init(r)
 	billHandler.Init(r)

@@ -45,12 +45,17 @@ func TestBillRepository_All(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"id", "name", "cost_cent"}).AddRow(bill.ID, bill.Name, bill.CostCent)
 	mock.ExpectQuery("SELECT \\* FROM `bill` WHERE id = \\?").WithArgs(bill.ID, 1).WillReturnRows(rows)
 
-	// 3. Update
+	// 3. FindByTripID
+	tripID := "all-test-trip-id"
+	rowsTrip := sqlmock.NewRows([]string{"id", "name", "cost_cent", "trip_id"}).AddRow(bill.ID, bill.Name, bill.CostCent, tripID)
+	mock.ExpectQuery("SELECT \\* FROM `bill` WHERE trip_id = \\?").WithArgs(tripID).WillReturnRows(rowsTrip)
+
+	// 4. Update
 	mock.ExpectBegin()
 	mock.ExpectExec("UPDATE `bill` SET").WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
-	// 4. Delete
+	// 5. Delete
 	mock.ExpectBegin()
 	mock.ExpectExec("DELETE FROM `bill` WHERE id = \\?").WithArgs(bill.ID).WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
@@ -66,6 +71,12 @@ func TestBillRepository_All(t *testing.T) {
 	logRepoCall(t, "BillRepository.FindByID", start, err)
 	assert.NoError(t, err)
 	assert.Equal(t, bill.Name, foundBill.Name)
+
+	start = time.Now()
+	err, billsByTrip := repo.FindByTripID(tripID)
+	logRepoCall(t, "BillRepository.FindByTripID", start, err)
+	assert.NoError(t, err)
+	assert.Len(t, billsByTrip, 1)
 
 	start = time.Now()
 	err = repo.UpdateByID(bill)
@@ -159,5 +170,31 @@ func TestBillRepository_DeleteByID(t *testing.T) {
 	err := repo.DeleteByID(billID)
 	logRepoCall(t, "BillRepository.DeleteByID", start, err)
 	assert.NoError(t, err)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestBillRepository_FindByTripID(t *testing.T) {
+	db, mock, sqlDB := setupBillMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &BillRepository{DB: db}
+	tripID := "trip-123"
+
+	rows := sqlmock.NewRows([]string{"id", "name", "cost_cent", "trip_id"}).
+		AddRow("bill-1", "Lunch", 5000, tripID).
+		AddRow("bill-2", "Taxi", 3000, tripID)
+
+	mock.ExpectQuery("SELECT \\* FROM `bill` WHERE trip_id = \\?").
+		WithArgs(tripID).
+		WillReturnRows(rows)
+
+	start := time.Now()
+	err, bills := repo.FindByTripID(tripID)
+	logRepoCall(t, "BillRepository.FindByTripID", start, err)
+
+	assert.NoError(t, err)
+	assert.Len(t, bills, 2)
+	assert.Equal(t, "Lunch", bills[0].Name)
+	assert.Equal(t, int64(5000), bills[0].CostCent)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
