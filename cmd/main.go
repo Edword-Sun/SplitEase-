@@ -25,17 +25,20 @@ func main() {
 	tripRepo := repository.NewTripRepository(config.DB)
 
 	// Initialize handlers and register routes
-	healthHandler := router.NewHealthHandler()
+
 	userHandler := router.NewUserHandler(userRepo, hashCrypto)
 	billHandler := router.NewBillHandler(billRepo)
 	teamHandler := router.NewTeamHandler(teamRepo)
 	tripHandler := router.NewTripHandler(tripRepo)
 
-	healthHandler.Init(r)
 	userHandler.Init(r)
 	billHandler.Init(r)
 	teamHandler.Init(r)
 	tripHandler.Init(r)
+
+	// 服务检查
+	healthHandler := router.NewHealthHandler()
+	healthHandler.Init(r)
 
 	r.Run(":8080") // listen and serve on 0.0.0.0:8080
 }
