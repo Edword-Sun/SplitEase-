@@ -47,6 +47,20 @@ func (r *TripRepository) FindByID(id string) (error, *model.Trip) {
 	}
 	return nil, &result
 }
+
+func (r *TripRepository) FindByCreatorID(creatorID string) (error, []*model.Trip) {
+	query := r.DB.Model(&model.Trip{})
+	var res []*model.Trip
+
+	query = query.Where("creator_id = ?", creatorID)
+	err := query.Find(&res).Error
+	if err != nil {
+		log.Println(err)
+		return errors.New("内部错误"), nil
+	}
+	return nil, res
+}
+
 func (r *TripRepository) UpdateByID(trip *model.Trip) error {
 	if trip == nil {
 		log.Println("nil pointer")

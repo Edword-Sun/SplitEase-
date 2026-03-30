@@ -35,6 +35,7 @@ func (h *TripHandler) Init(engine *gin.Engine) {
 	{
 		g.POST("/add", h.Add)
 		g.POST("/find_by_id", h.FindByID)
+		g.POST("/find_by_creator_id", h.FindByCreatorID)
 		g.POST("/update_by_id", h.UpdateByID)
 		g.POST("/delete_by_id", h.DeleteByID)
 
@@ -85,6 +86,26 @@ func (h *TripHandler) FindByID(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": result})
+}
+
+func (h *TripHandler) FindByCreatorID(c *gin.Context) {
+	var request = struct {
+		CreatorID string `json:"creator_id"`
+	}{}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err, res := h.repo.FindByCreatorID(request.CreatorID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success", "trips": res})
 }
 
 func (h *TripHandler) UpdateByID(c *gin.Context) {

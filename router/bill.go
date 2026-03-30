@@ -26,6 +26,7 @@ func (h *BillHandler) Init(engine *gin.Engine) {
 	{
 		g.POST("/add", h.Add)
 		g.POST("/find_by_id", h.FindByID)
+		g.POST("/find_by_trip_id", h.FindByTripID)
 		g.POST("/update_by_id", h.UpdateByID)
 		g.POST("/delete_by_id", h.DeleteByID)
 
@@ -75,6 +76,29 @@ func (h *BillHandler) FindByID(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": result})
+}
+
+func (h *BillHandler) FindByTripID(c *gin.Context) {
+	var request = struct {
+		TripID string `json:"id"`
+	}{}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err, res := h.repo.FindByTripID(request.TripID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "success",
+		"data":    res,
+	})
 }
 
 func (h *BillHandler) UpdateByID(c *gin.Context) {
