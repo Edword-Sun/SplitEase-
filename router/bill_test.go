@@ -57,6 +57,11 @@ func TestBillRouter_All(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"id", "name", "cost_cent"}).AddRow(billID, bill.Name, bill.CostCent)
 	mock.ExpectQuery("SELECT \\* FROM `bill` WHERE id = \\?").WithArgs(billID, 1).WillReturnRows(rows)
 
+	// 2.1 FindByTripID
+	tripID := "all-test-trip-id"
+	rowsTrip := sqlmock.NewRows([]string{"id", "name", "cost_cent", "trip_id"}).AddRow(billID, bill.Name, bill.CostCent, tripID)
+	mock.ExpectQuery("SELECT \\* FROM `bill` WHERE trip_id = \\?").WithArgs(tripID).WillReturnRows(rowsTrip)
+
 	// 3. Update
 	mock.ExpectBegin()
 	mock.ExpectExec("UPDATE `bill` SET").WillReturnResult(sqlmock.NewResult(1, 1))
@@ -81,6 +86,13 @@ func TestBillRouter_All(t *testing.T) {
 	r.ServeHTTP(wFind, reqFind)
 	assert.Equal(t, http.StatusOK, wFind.Code)
 
+	// Run FindByTripID
+	bodyFindTrip, _ := json.Marshal(map[string]string{"id": tripID})
+	reqFindTrip, _ := http.NewRequest("POST", "/bill/find_by_trip_id", bytes.NewBuffer(bodyFindTrip))
+	wFindTrip := httptest.NewRecorder()
+	r.ServeHTTP(wFindTrip, reqFindTrip)
+	assert.Equal(t, http.StatusOK, wFindTrip.Code)
+
 	// Run Update
 	bodyUpdate, _ := json.Marshal(bill)
 	reqUpdate, _ := http.NewRequest("POST", "/bill/update_by_id", bytes.NewBuffer(bodyUpdate))
@@ -98,7 +110,39 @@ func TestBillRouter_All(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestBillRouter_Add(t *testing.T) {
+func TestBillHandler_FindByTripID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db, mock, sqlDB := setupBillRouterMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &repository.BillRepository{DB: db}
+	handler := NewBillHandler(repo)
+	r := gin.Default()
+	handler.Init(r)
+
+	tripID := "test-trip-id"
+	rows := sqlmock.NewRows([]string{"id", "name", "trip_id"}).
+		AddRow("bill-1", "Bill 1", tripID).
+		AddRow("bill-2", "Bill 2", tripID)
+
+	mock.ExpectQuery("SELECT \\* FROM `bill` WHERE trip_id = \\?").
+		WithArgs(tripID).
+		WillReturnRows(rows)
+
+	body, _ := json.Marshal(map[string]string{"id": tripID})
+	req, _ := http.NewRequest("POST", "/bill/find_by_trip_id", bytes.NewBuffer(body))
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "success", response["message"])
+	assert.NotNil(t, response["data"])
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestBillHandler_Add(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db, mock, sqlDB := setupBillRouterMockDB(t)
 	defer sqlDB.Close()

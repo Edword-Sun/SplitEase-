@@ -59,6 +59,11 @@ func TestTripRouter_All(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"id", "name"}).AddRow(tripID, trip.Name)
 	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE id = \\?").WithArgs(tripID, 1).WillReturnRows(rows)
 
+	// 2.1 FindByCreatorID
+	creatorID := "all-test-creator-id"
+	rowsCreator := sqlmock.NewRows([]string{"id", "name", "creator_id"}).AddRow(tripID, trip.Name, creatorID)
+	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE creator_id = \\?").WithArgs(creatorID).WillReturnRows(rowsCreator)
+
 	// 3. Update
 	mock.ExpectBegin()
 	mock.ExpectExec("UPDATE `trip` SET").WillReturnResult(sqlmock.NewResult(1, 1))
@@ -92,6 +97,13 @@ func TestTripRouter_All(t *testing.T) {
 	r.ServeHTTP(wFind, reqFind)
 	assert.Equal(t, http.StatusOK, wFind.Code)
 
+	// Run FindByCreatorID
+	bodyFindCreator, _ := json.Marshal(map[string]string{"creator_id": creatorID})
+	reqFindCreator, _ := http.NewRequest("POST", "/trip/find_by_creator_id", bytes.NewBuffer(bodyFindCreator))
+	wFindCreator := httptest.NewRecorder()
+	r.ServeHTTP(wFindCreator, reqFindCreator)
+	assert.Equal(t, http.StatusOK, wFindCreator.Code)
+
 	// Run Update
 	bodyUpdate, _ := json.Marshal(trip)
 	reqUpdate, _ := http.NewRequest("POST", "/trip/update_by_id", bytes.NewBuffer(bodyUpdate))
@@ -116,7 +128,41 @@ func TestTripRouter_All(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestTripRouter_Add(t *testing.T) {
+func TestTripHandler_FindByCreatorID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db, mock, sqlDB := setupTripRouterMockDB(t)
+	defer sqlDB.Close()
+
+	tripRepo := &repository.TripRepository{DB: db}
+	userRepo := &repository.UserRepository{DB: db}
+	billRepo := &repository.BillRepository{DB: db}
+	handler := NewTripHandler(tripRepo, userRepo, billRepo)
+	r := gin.Default()
+	handler.Init(r)
+
+	creatorID := "test-creator-id"
+	rows := sqlmock.NewRows([]string{"id", "name", "creator"}).
+		AddRow("trip-1", "Trip 1", creatorID).
+		AddRow("trip-2", "Trip 2", creatorID)
+
+	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE creator_id = \\?").
+		WithArgs(creatorID).
+		WillReturnRows(rows)
+
+	body, _ := json.Marshal(map[string]string{"creator_id": creatorID})
+	req, _ := http.NewRequest("POST", "/trip/find_by_creator_id", bytes.NewBuffer(body))
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "success", response["message"])
+	assert.NotNil(t, response["trips"])
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestTripHandler_Add(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db, mock, sqlDB := setupTripRouterMockDB(t)
 	defer sqlDB.Close()

@@ -45,6 +45,11 @@ func TestTripRepository_All(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"id", "name"}).AddRow(trip.ID, trip.Name)
 	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE id = \\?").WithArgs(trip.ID, 1).WillReturnRows(rows)
 
+	// 2.1 FindByCreatorID
+	creatorID := "all-test-creator-id"
+	rowsCreator := sqlmock.NewRows([]string{"id", "name", "creator_id"}).AddRow(trip.ID, trip.Name, creatorID)
+	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE creator_id = \\?").WithArgs(creatorID).WillReturnRows(rowsCreator)
+
 	// 3. Update
 	mock.ExpectBegin()
 	mock.ExpectExec("UPDATE `trip` SET").WillReturnResult(sqlmock.NewResult(1, 1))
@@ -66,6 +71,12 @@ func TestTripRepository_All(t *testing.T) {
 	logRepoCall(t, "TripRepository.FindByID", start, err)
 	assert.NoError(t, err)
 	assert.Equal(t, trip.Name, foundTrip.Name)
+
+	start = time.Now()
+	err, creatorTrips := repo.FindByCreatorID(creatorID)
+	logRepoCall(t, "TripRepository.FindByCreatorID", start, err)
+	assert.NoError(t, err)
+	assert.Len(t, creatorTrips, 1)
 
 	start = time.Now()
 	err = repo.UpdateByID(trip)
@@ -96,6 +107,36 @@ func TestTripRepository_Create(t *testing.T) {
 	err := repo.Create(trip)
 	logRepoCall(t, "TripRepository.Create", start, err)
 	assert.NoError(t, err)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestTripRepository_FindByCreatorID(t *testing.T) {
+	db, mock, sqlDB := setupTripMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &TripRepository{DB: db}
+	creatorID := "test-creator-id"
+	trips := []*model.Trip{
+		{ID: "trip-1", Name: "Trip 1", Creator: creatorID},
+		{ID: "trip-2", Name: "Trip 2", Creator: creatorID},
+	}
+
+	rows := sqlmock.NewRows([]string{"id", "name", "creator"}).
+		AddRow(trips[0].ID, trips[0].Name, trips[0].Creator).
+		AddRow(trips[1].ID, trips[1].Name, trips[1].Creator)
+
+	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE creator_id = \\?").
+		WithArgs(creatorID).
+		WillReturnRows(rows)
+
+	start := time.Now()
+	err, res := repo.FindByCreatorID(creatorID)
+	logRepoCall(t, "TripRepository.FindByCreatorID", start, err)
+
+	assert.NoError(t, err)
+	assert.Len(t, res, 2)
+	assert.Equal(t, trips[0].Name, res[0].Name)
+	assert.Equal(t, trips[1].Name, res[1].Name)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
