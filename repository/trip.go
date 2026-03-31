@@ -84,3 +84,18 @@ func (r *TripRepository) DeleteByID(id string) error {
 	}
 	return nil
 }
+
+// new todo test
+func (r *TripRepository) FindByMemberID(memberID string) (error, []*model.Trip) {
+	query := r.DB.Model(&model.Trip{})
+	var res []*model.Trip
+
+	query = query.Where("JSON_CONTAINS(members, CAST(? AS JSON))", "\""+memberID+"\"")
+	err := query.Find(&res).Error
+	if err != nil {
+		log.Println(err)
+		return errors.New("内部错误"), nil
+	}
+
+	return nil, res
+}

@@ -61,8 +61,8 @@ func TestTripRouter_All(t *testing.T) {
 
 	// 2.1 FindByCreatorID
 	creatorID := "all-test-creator-id"
-	rowsCreator := sqlmock.NewRows([]string{"id", "name", "creator_id"}).AddRow(tripID, trip.Name, creatorID)
-	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE creator_id = \\?").WithArgs(creatorID).WillReturnRows(rowsCreator)
+	rowsCreator := sqlmock.NewRows([]string{"id", "name", "creator"}).AddRow(tripID, trip.Name, creatorID)
+	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE creator = \\?").WithArgs(creatorID).WillReturnRows(rowsCreator)
 
 	// 3. Update
 	mock.ExpectBegin()
@@ -77,6 +77,14 @@ func TestTripRouter_All(t *testing.T) {
 			AddRow("bill-1", "Test Bill", 1000, tripID))
 	mock.ExpectQuery("SELECT \\* FROM `user` WHERE id = \\?").WithArgs("user-1", 1).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).AddRow("user-1", "Test User"))
+
+	// 4.1 FindByMemberID
+	memberID := "all-test-member-id"
+	rowsMember := sqlmock.NewRows([]string{"id", "name", "members"}).
+		AddRow(tripID, trip.Name, `["all-test-member-id"]`)
+	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE JSON_CONTAINS\\(members, CAST\\(\\? AS JSON\\)\\)").
+		WithArgs("\"" + memberID + "\"").
+		WillReturnRows(rowsMember)
 
 	// 5. Delete
 	mock.ExpectBegin()
@@ -118,12 +126,72 @@ func TestTripRouter_All(t *testing.T) {
 	r.ServeHTTP(wSplit, reqSplit)
 	assert.Equal(t, http.StatusOK, wSplit.Code)
 
+	// Run FindByMember
+	bodyFindByMember, _ := json.Marshal(map[string]string{"member_id": memberID})
+	reqFindByMember, _ := http.NewRequest("POST", "/trip/find_by_member", bytes.NewBuffer(bodyFindByMember))
+	wFindByMember := httptest.NewRecorder()
+	r.ServeHTTP(wFindByMember, reqFindByMember)
+	assert.Equal(t, http.StatusOK, wFindByMember.Code)
+	var response map[string]interface{}
+	json.Unmarshal(wFindByMember.Body.Bytes(), &response)
+	assert.Equal(t, "success", response["message"])
+	data := response["data"].([]interface{})
+	assert.Len(t, data, 1)
+	assert.Equal(t, tripID, data[0].(map[string]interface{})["id"])
+	assert.Equal(t, trip.Name, data[0].(map[string]interface{})["name"])
+
 	// Run Delete
 	bodyDelete, _ := json.Marshal(map[string]string{"id": tripID})
 	reqDelete, _ := http.NewRequest("POST", "/trip/delete_by_id", bytes.NewBuffer(bodyDelete))
 	wDelete := httptest.NewRecorder()
 	r.ServeHTTP(wDelete, reqDelete)
 	assert.Equal(t, http.StatusOK, wDelete.Code)
+
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestTripHandler_FindByMember(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db, mock, sqlDB := setupTripRouterMockDB(t)
+	defer sqlDB.Close()
+
+	tripRepo := &repository.TripRepository{DB: db}
+	userRepo := &repository.UserRepository{DB: db}
+	billRepo := &repository.BillRepository{DB: db}
+	handler := NewTripHandler(tripRepo, userRepo, billRepo)
+	r := gin.Default()
+	handler.Init(r)
+
+	memberID := "test-member-id"
+	tripID1 := "trip-1"
+	tripID2 := "trip-2"
+	tripName1 := "Trip One"
+	tripName2 := "Trip Two"
+
+	// Mock repository call for FindByMemberID
+	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE JSON_CONTAINS\\(members, CAST\\(\\? AS JSON\\)\\)").
+		WithArgs("\"" + memberID + "\"").
+		WillReturnRows(sqlmock.NewRows([]string{"id", "name", "members"}).
+			AddRow(tripID1, tripName1, `["test-member-id", "other-member"]`).
+			AddRow(tripID2, tripName2, `["another-member", "test-member-id"]`))
+
+	body, _ := json.Marshal(map[string]string{"member_id": memberID})
+	req, _ := http.NewRequest("POST", "/trip/find_by_member", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "success", response["message"])
+
+	data := response["data"].([]interface{})
+	assert.Len(t, data, 2)
+	assert.Equal(t, tripID1, data[0].(map[string]interface{})["id"])
+	assert.Equal(t, tripName1, data[0].(map[string]interface{})["name"])
+	assert.Equal(t, tripID2, data[1].(map[string]interface{})["id"])
+	assert.Equal(t, tripName2, data[1].(map[string]interface{})["name"])
 
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
@@ -145,7 +213,7 @@ func TestTripHandler_FindByCreatorID(t *testing.T) {
 		AddRow("trip-1", "Trip 1", creatorID).
 		AddRow("trip-2", "Trip 2", creatorID)
 
-	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE creator_id = \\?").
+	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE creator = \\?").
 		WithArgs(creatorID).
 		WillReturnRows(rows)
 

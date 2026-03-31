@@ -13,6 +13,7 @@ const TripDetailPage = () => {
   const [bills, setBills] = useState<Bill[]>([]);
   const [splitResults, setSplitResults] = useState<SplitResponseData | null>(null);
   const [creatorTrips, setCreatorTrips] = useState<Trip[]>([]);
+  const [memberTrips, setMemberTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'bills' | 'split'>('bills');
   const [showAddBillModal, setShowAddBillModal] = useState(false);
@@ -45,6 +46,15 @@ const TripDetailPage = () => {
     }
   };
 
+  const fetchTripsByMember = async () => {
+    try {
+      const response = await api.post('/trip/find_by_member', { member_id: user.id });
+      setMemberTrips(response.data.data || []);
+    } catch (err: any) {
+      console.error('Failed to fetch member trips:', err);
+    }
+  };
+
   const fetchTripsByCreator = async () => {
     try {
       const response = await api.post('/trip/find_by_creator_id', { creator_id: user.id });
@@ -58,6 +68,7 @@ const TripDetailPage = () => {
     fetchData();
     if (user.id) {
       fetchTripsByCreator();
+      fetchTripsByMember();
     }
   }, [id, user.id]);
 
@@ -340,6 +351,24 @@ const TripDetailPage = () => {
           <h3 className="text-xl font-bold text-gray-900 mb-4">该用户创建的其他旅行</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {creatorTrips.map((t) => (
+              <div 
+                key={t.id} 
+                className="bg-white p-5 rounded-2xl border border-gray-50 shadow-sm hover:border-blue-100 hover:shadow-md transition-all cursor-pointer"
+                onClick={() => navigate(`/trip/${t.id}`)}
+              >
+                <h4 className="font-bold text-gray-900 text-lg leading-tight">{t.name}</h4>
+                <p className="text-gray-500 text-sm mt-1 line-clamp-2">{t.description || '暂无描述'}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {memberTrips.length > 0 && (
+        <div className="mt-10">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">该用户参与的其他旅行</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {memberTrips.map((t) => (
               <div 
                 key={t.id} 
                 className="bg-white p-5 rounded-2xl border border-gray-50 shadow-sm hover:border-blue-100 hover:shadow-md transition-all cursor-pointer"

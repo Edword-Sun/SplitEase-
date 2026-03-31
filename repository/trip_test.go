@@ -47,13 +47,21 @@ func TestTripRepository_All(t *testing.T) {
 
 	// 2.1 FindByCreatorID
 	creatorID := "all-test-creator-id"
-	rowsCreator := sqlmock.NewRows([]string{"id", "name", "creator_id"}).AddRow(trip.ID, trip.Name, creatorID)
-	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE creator_id = \\?").WithArgs(creatorID).WillReturnRows(rowsCreator)
+	rowsCreator := sqlmock.NewRows([]string{"id", "name", "creator"}).AddRow(trip.ID, trip.Name, creatorID)
+	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE creator = \\?").WithArgs(creatorID).WillReturnRows(rowsCreator)
 
 	// 3. Update
 	mock.ExpectBegin()
 	mock.ExpectExec("UPDATE `trip` SET").WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
+
+	// 3.1 FindByMemberID
+	memberID := "all-test-member-id"
+	rowsMember := sqlmock.NewRows([]string{"id", "name", "members"}).
+		AddRow(trip.ID, trip.Name, `["all-test-member-id"]`)
+	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE JSON_CONTAINS\\(members, CAST\\(\\? AS JSON\\)\\)").
+		WithArgs("\"" + memberID + "\"").
+		WillReturnRows(rowsMember)
 
 	// 4. Delete
 	mock.ExpectBegin()
@@ -84,9 +92,51 @@ func TestTripRepository_All(t *testing.T) {
 	assert.NoError(t, err)
 
 	start = time.Now()
+	err, memberTrips := repo.FindByMemberID(memberID)
+	logRepoCall(t, "TripRepository.FindByMemberID", start, err)
+	assert.NoError(t, err)
+	assert.Len(t, memberTrips, 1)
+
+	start = time.Now()
 	err = repo.DeleteByID(trip.ID)
 	logRepoCall(t, "TripRepository.DeleteByID", start, err)
 	assert.NoError(t, err)
+
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestTripRepository_FindByMemberID(t *testing.T) {
+	db, mock, sqlDB := setupTripMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &TripRepository{DB: db}
+
+	memberID := "test-member-id"
+	tripID1 := "trip-1"
+	tripID2 := "trip-2"
+	tripName1 := "Trip One"
+	tripName2 := "Trip Two"
+
+	// 期望的 SQL 查询，使用 JSON_CONTAINS
+	// 注意：sqlmock 不直接支持 JSON_CONTAINS 的参数化，这里需要匹配完整的字符串
+	// 实际的查询会是 JSON_CONTAINS(members, CAST('"test-member-id"' AS JSON))
+	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE JSON_CONTAINS\\(members, CAST\\(\\? AS JSON\\)\\)").
+		WithArgs("\"" + memberID + "\"").
+		WillReturnRows(sqlmock.NewRows([]string{"id", "name", "members"}).
+			AddRow(tripID1, tripName1, `["test-member-id", "other-member"]`).
+			AddRow(tripID2, tripName2, `["another-member", "test-member-id"]`))
+
+	start := time.Now()
+	err, trips := repo.FindByMemberID(memberID)
+	logRepoCall(t, "TripRepository.FindByMemberID", start, err)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, trips)
+	assert.Len(t, trips, 2)
+	assert.Equal(t, tripID1, trips[0].ID)
+	assert.Equal(t, tripName1, trips[0].Name)
+	assert.Equal(t, tripID2, trips[1].ID)
+	assert.Equal(t, tripName2, trips[1].Name)
 
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
@@ -125,7 +175,7 @@ func TestTripRepository_FindByCreatorID(t *testing.T) {
 		AddRow(trips[0].ID, trips[0].Name, trips[0].Creator).
 		AddRow(trips[1].ID, trips[1].Name, trips[1].Creator)
 
-	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE creator_id = \\?").
+	mock.ExpectQuery("SELECT \\* FROM `trip` WHERE creator = \\?").
 		WithArgs(creatorID).
 		WillReturnRows(rows)
 

@@ -36,6 +36,8 @@ func (h *TripHandler) Init(engine *gin.Engine) {
 		g.POST("/add", h.Add)
 		g.POST("/find_by_id", h.FindByID)
 		g.POST("/find_by_creator_id", h.FindByCreatorID)
+		// new
+		g.POST("/find_by_member", h.FindByMember)
 		g.POST("/update_by_id", h.UpdateByID)
 		g.POST("/delete_by_id", h.DeleteByID)
 
@@ -88,15 +90,16 @@ func (h *TripHandler) FindByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": result})
 }
 
-type FBCIDReq struct {
-	CreatorID string `json:"creator_id"`
-}
+// for debug
+//type FBCIDReq struct {
+//	CreatorID string `json:"creator_id"`
+//}
 
 func (h *TripHandler) FindByCreatorID(c *gin.Context) {
-	//var request = struct {
-	//	CreatorID string `json:"creator_id"`
-	//}{}
-	var request FBCIDReq
+	var request = struct {
+		CreatorID string `json:"creator_id"`
+	}{}
+	//var request FBCIDReq
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		log.Println(err)
@@ -319,4 +322,26 @@ func (h *TripHandler) Split(c *gin.Context) {
 // 在 router/trip.go 中添加或直接在逻辑中使用
 func toYuan(jiao int64) string {
 	return fmt.Sprintf("%d.%02d", jiao/100, jiao%100)
+}
+
+// new todo 测试
+func (h *TripHandler) FindByMember(c *gin.Context) {
+	request := struct {
+		MemberID string `json:"member_id"`
+	}{}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err, trips := h.repo.FindByMemberID(request.MemberID)
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": trips})
 }
