@@ -17,9 +17,9 @@ const DashboardPage = () => {
   const fetchTrips = async () => {
     try {
       setLoading(true);
-      // Note: This API might be missing from backend, handled gracefully
-      const response = await api.post('/trip/find_by_creator', { creator: user.id });
-      setTrips(response.data.data || []);
+      // Fixed endpoint and parameter name to match backend: /trip/find_by_creator_id
+      const response = await api.post('/trip/find_by_creator_id', { creator_id: user.id });
+      setTrips(response.data.data || response.data.trips || []);
     } catch (error) {
       console.warn('Trip listing API might be missing or failed:', error);
       setTrips([]);

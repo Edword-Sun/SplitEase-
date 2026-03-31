@@ -52,7 +52,7 @@ func (r *TripRepository) FindByCreatorID(creatorID string) (error, []*model.Trip
 	query := r.DB.Model(&model.Trip{})
 	var res []*model.Trip
 
-	query = query.Where("creator_id = ?", creatorID)
+	query = query.Where("creator = ?", creatorID)
 	err := query.Find(&res).Error
 	if err != nil {
 		log.Println(err)

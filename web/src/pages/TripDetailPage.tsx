@@ -28,9 +28,9 @@ const TripDetailPage = () => {
       const tripRes = await api.post('/trip/find_by_id', { id });
       setTrip(tripRes.data.data);
       
-      // Note: This API might be missing from backend, handled gracefully
+      // Fixed endpoint and parameter name to match backend: /bill/find_by_trip_id
       try {
-        const billRes = await api.post('/bill/find_by_trip_id', { trip_id: id });
+        const billRes = await api.post('/bill/find_by_trip_id', { id });
         setBills(billRes.data.data || []);
       } catch (err: any) {
         console.warn('Bill listing API might be missing:', err.message);
@@ -115,19 +115,16 @@ const TripDetailPage = () => {
   );
 
   if (error && !trip) return (
-    <div className="text-center py-20 bg-white rounded-2xl border border-red-100 p-8 shadow-sm">
-      <p className="text-red-500 font-bold text-lg">{error}</p>
-      <button 
-        onClick={() => navigate('/')}
-        className="mt-6 text-blue-600 font-medium flex items-center gap-1 mx-auto hover:underline"
-      >
-        <ChevronLeft size={18} />
-        返回列表
-      </button>
+    <div className="text-center py-12 text-gray-400 text-sm font-medium">
+      {error}
     </div>
   );
 
-  if (!trip) return <div className="text-center py-10">旅行不存在</div>;
+  if (!trip) return (
+    <div className="text-center py-12 text-gray-400 text-sm font-medium">
+      未找到相关旅行信息
+    </div>
+  );
 
   return (
     <div className="space-y-6 pb-20">

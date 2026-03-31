@@ -88,10 +88,15 @@ func (h *TripHandler) FindByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": result})
 }
 
+type FBCIDReq struct {
+	CreatorID string `json:"id"`
+}
+
 func (h *TripHandler) FindByCreatorID(c *gin.Context) {
-	var request = struct {
-		CreatorID string `json:"creator_id"`
-	}{}
+	//var request = struct {
+	//	CreatorID string `json:"creator_id"`
+	//}{}
+	var request FBCIDReq
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		log.Println(err)
