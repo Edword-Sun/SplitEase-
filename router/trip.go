@@ -89,7 +89,7 @@ func (h *TripHandler) FindByID(c *gin.Context) {
 }
 
 type FBCIDReq struct {
-	CreatorID string `json:"id"`
+	CreatorID string `json:"creator_id"`
 }
 
 func (h *TripHandler) FindByCreatorID(c *gin.Context) {

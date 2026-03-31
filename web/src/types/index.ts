@@ -36,3 +36,10 @@ export interface SplitResult {
   to: string;
   amount_cent: number;
 }
+
+export interface SplitResponseData {
+  avg_costs: string;
+  details: SplitResult[];
+  total_costs: string;
+  trip_name: string;
+}
