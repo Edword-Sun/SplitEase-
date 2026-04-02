@@ -311,31 +311,9 @@ const TripDetailPage = () => {
                       无需进行转账
                     </div>
                   ) : (
-                    splitResults.details.map((res, i) => (
+                    splitResults.details.map((detail, i) => (
                       <div key={i} className="p-6 flex items-center justify-between hover:bg-blue-50/20 transition-colors group">
-                        <div className="flex items-center gap-4 flex-1">
-                          <div className="flex flex-col items-center min-w-[80px]">
-                            <span className="text-[10px] font-bold text-gray-300 mb-1 uppercase">Debtor</span>
-                            <span className="px-4 py-1.5 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-gray-700 shadow-sm group-hover:bg-white group-hover:border-red-100 transition-all">
-                              {res.from === user.id ? '我' : (res.from.length > 8 ? res.from.substring(0, 8) : res.from)}
-                            </span>
-                          </div>
-                          <div className="flex-1 flex flex-col items-center">
-                            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-blue-200 to-transparent relative">
-                              <ArrowRightLeft size={14} className="text-blue-400 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-1 box-content" />
-                            </div>
-                            <span className="text-[10px] font-bold text-blue-400 mt-2">支付给</span>
-                          </div>
-                          <div className="flex flex-col items-center min-w-[80px]">
-                            <span className="text-[10px] font-bold text-gray-300 mb-1 uppercase">Creditor</span>
-                            <span className="px-4 py-1.5 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-gray-700 shadow-sm group-hover:bg-white group-hover:border-emerald-100 transition-all">
-                              {res.to === user.id ? '我' : (res.to.length > 8 ? res.to.substring(0, 8) : res.to)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-right ml-8">
-                          <span className="text-2xl font-black text-emerald-600">￥{formatCentToYuan(res.amount_cent)}</span>
-                        </div>
+                        <p className="text-gray-700 font-medium">{detail}</p>
                       </div>
                     ))
                   )}

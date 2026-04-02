@@ -39,7 +39,7 @@ export interface SplitResult {
 
 export interface SplitResponseData {
   avg_costs: string;
-  details: SplitResult[];
+  details: string[];
   total_costs: string;
   trip_name: string;
 }

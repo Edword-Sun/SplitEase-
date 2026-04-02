@@ -6,7 +6,8 @@ import { Trip, User } from '../types';
 import { formatDate } from '../utils/format';
 
 const DashboardPage = () => {
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [trips, setTrips] = useState<Trip[]>([]); // This will now be creatorTrips
+  const [memberTrips, setMemberTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTrip, setNewTrip] = useState({ name: '', description: '' });
@@ -14,7 +15,7 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const user: User = JSON.parse(localStorage.getItem('user') || '{}');
 
-  const fetchTrips = async () => {
+  const fetchCreatorTrips = async () => {
     try {
       setLoading(true);
       // Fixed endpoint and parameter name to match backend: /trip/find_by_creator_id
@@ -28,13 +29,24 @@ const DashboardPage = () => {
     }
   };
 
+  const fetchMemberTrips = async () => {
+    try {
+      const response = await api.post('/trip/find_by_member', { member_id: user.id });
+      setMemberTrips(response.data.data || []);
+    } catch (error) {
+      console.warn('Member trip listing API might be missing or failed:', error);
+      setMemberTrips([]);
+    }
+  };
+
   useEffect(() => {
     if (!user.id) {
       navigate('/login');
       return;
     }
-    fetchTrips();
-  }, []);
+    fetchCreatorTrips();
+    fetchMemberTrips();
+  }, [user.id]);
 
   const handleAddTrip = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +64,12 @@ const DashboardPage = () => {
     }
   };
 
-  const filteredTrips = trips.filter(trip => 
+  const filteredCreatorTrips = trips.filter(trip => 
+    trip.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    trip.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredMemberTrips = memberTrips.filter(trip => 
     trip.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     trip.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -91,7 +108,7 @@ const DashboardPage = () => {
         <div className="bg-blue-600 rounded-2xl p-4 flex items-center justify-between text-white shadow-lg shadow-blue-100">
           <div>
             <p className="text-blue-100 text-xs font-bold uppercase tracking-wider">进行中</p>
-            <p className="text-2xl font-black mt-1">{trips.length} <span className="text-sm font-normal text-blue-100">个旅行</span></p>
+            <p className="text-2xl font-black mt-1">{trips.length + memberTrips.length} <span className="text-sm font-normal text-blue-100">个旅行</span></p>
           </div>
           <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
             <MapPin size={24} />
@@ -106,74 +123,152 @@ const DashboardPage = () => {
             <div key={i} className="h-48 bg-gray-100 animate-pulse rounded-3xl"></div>
           ))}
         </div>
-      ) : filteredTrips.length === 0 ? (
-        <div className="text-center py-24 bg-white rounded-[32px] border-2 border-dashed border-gray-100 shadow-sm">
-          <div className="mx-auto w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-200 mb-6">
-            <Wallet size={40} />
-          </div>
-          <h3 className="text-xl font-bold text-gray-900">暂无旅行记录</h3>
-          <p className="text-gray-400 mt-2 max-w-xs mx-auto">
-            {searchTerm ? '没有找到匹配的旅行，换个关键词试试？' : '点击右上角“创建新旅行”开始记录您的第一笔开支。'}
-          </p>
-          {searchTerm && (
-            <button 
-              onClick={() => setSearchTerm('')}
-              className="mt-4 text-blue-600 font-bold hover:underline"
-            >
-              清空搜索
-            </button>
-          )}
-        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredTrips.map((trip) => (
-            <div
-              key={trip.id}
-              onClick={() => navigate(`/trip/${trip.id}`)}
-              className="group bg-white p-7 rounded-[32px] border border-gray-50 shadow-sm hover:shadow-xl hover:border-blue-100 hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 p-6 text-gray-200 group-hover:text-blue-500 transition-colors">
-                <ChevronRight size={28} />
+        <>
+          {/* 我创建的旅行 */}
+          <h3 className="text-xl font-bold text-gray-900 mt-8 mb-4">我创建的旅行 ({filteredCreatorTrips.length})</h3>
+          {filteredCreatorTrips.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-[32px] border-2 border-dashed border-gray-100 shadow-sm">
+              <div className="mx-auto w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-200 mb-6">
+                <Wallet size={40} />
               </div>
-              
-              <div className="flex flex-col h-full">
-                <h3 className="text-xl font-black text-gray-900 mb-2 group-hover:text-blue-600 transition-colors pr-8">
-                  {trip.name}
-                </h3>
-                <p className="text-gray-400 text-sm line-clamp-2 mb-8 font-medium flex-grow">
-                  {trip.description || '这趟旅行还没有添加描述...'}
-                </p>
-                
-                <div className="flex items-center justify-between pt-6 border-t border-gray-50">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1.5 text-gray-400">
-                      <Calendar size={14} className="text-gray-300" />
-                      <span className="text-[11px] font-bold uppercase tracking-tight">{formatDate(trip.create_time).split(' ')[0]}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-gray-400">
-                      <Users size={14} className="text-gray-300" />
-                      <span className="text-[11px] font-bold uppercase tracking-tight">{trip.members?.length || 0} 成员</span>
-                    </div>
+              <h3 className="text-xl font-bold text-gray-900">暂无创建的旅行记录</h3>
+              <p className="text-gray-400 mt-2 max-w-xs mx-auto">
+                {searchTerm ? '没有找到匹配的旅行，换个关键词试试？' : '点击右上角“创建新旅行”开始记录您的第一笔开支。'}
+              </p>
+              {searchTerm && (
+                <button 
+                  onClick={() => setSearchTerm('')}
+                  className="mt-4 text-blue-600 font-bold hover:underline"
+                >
+                  清空搜索
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredCreatorTrips.map((trip) => (
+                <div
+                  key={trip.id}
+                  onClick={() => navigate(`/trip/${trip.id}`)}
+                  className="group bg-white p-7 rounded-[32px] border border-gray-50 shadow-sm hover:shadow-xl hover:border-blue-100 hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 p-6 text-gray-200 group-hover:text-blue-500 transition-colors">
+                    <ChevronRight size={28} />
                   </div>
                   
-                  {/* Avatar stack mock */}
-                  <div className="flex -space-x-2">
-                    {trip.members?.slice(0, 3).map((_, i) => (
-                      <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[8px] font-bold text-gray-400">
-                        U{i+1}
+                  <div className="flex flex-col h-full">
+                    <h3 className="text-xl font-black text-gray-900 mb-2 group-hover:text-blue-600 transition-colors pr-8">
+                      {trip.name}
+                    </h3>
+                    <p className="text-gray-400 text-sm line-clamp-2 mb-8 font-medium flex-grow">
+                      {trip.description || '这趟旅行还没有添加描述...'}
+                    </p>
+                    
+                    <div className="flex items-center justify-between pt-6 border-t border-gray-50">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1.5 text-gray-400">
+                          <Calendar size={14} className="text-gray-300" />
+                          <span className="text-[11px] font-bold uppercase tracking-tight">{formatDate(trip.create_time).split(' ')[0]}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-gray-400">
+                          <Users size={14} className="text-gray-300" />
+                          <span className="text-[11px] font-bold uppercase tracking-tight">{trip.members?.length || 0} 成员</span>
+                        </div>
                       </div>
-                    ))}
-                    {(trip.members?.length || 0) > 3 && (
-                      <div className="w-6 h-6 rounded-full border-2 border-white bg-blue-50 flex items-center justify-center text-[8px] font-bold text-blue-400">
-                        +{(trip.members?.length || 0) - 3}
+                      
+                      {/* Avatar stack mock */}
+                      <div className="flex -space-x-2">
+                        {trip.members?.slice(0, 3).map((_, i) => (
+                          <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[8px] font-bold text-gray-400">
+                            U{i+1}
+                          </div>
+                        ))}
+                        {(trip.members?.length || 0) > 3 && (
+                          <div className="w-6 h-6 rounded-full border-2 border-white bg-blue-50 flex items-center justify-center text-[8px] font-bold text-blue-400">
+                            +{(trip.members?.length || 0) - 3}
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+
+          {/* 我参与的旅行 */}
+          <h3 className="text-xl font-bold text-gray-900 mt-8 mb-4">我参与的旅行 ({filteredMemberTrips.length})</h3>
+          {filteredMemberTrips.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-[32px] border-2 border-dashed border-gray-100 shadow-sm">
+              <div className="mx-auto w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-200 mb-6">
+                <Wallet size={40} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">暂无参与的旅行记录</h3>
+              <p className="text-gray-400 mt-2 max-w-xs mx-auto">
+                {searchTerm ? '没有找到匹配的旅行，换个关键词试试？' : '加入一个旅行，开始记录您的开支。'}
+              </p>
+              {searchTerm && (
+                <button 
+                  onClick={() => setSearchTerm('')}
+                  className="mt-4 text-blue-600 font-bold hover:underline"
+                >
+                  清空搜索
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredMemberTrips.map((trip) => (
+                <div
+                  key={trip.id}
+                  onClick={() => navigate(`/trip/${trip.id}`)}
+                  className="group bg-white p-7 rounded-[32px] border border-gray-50 shadow-sm hover:shadow-xl hover:border-blue-100 hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 p-6 text-gray-200 group-hover:text-blue-500 transition-colors">
+                    <ChevronRight size={28} />
+                  </div>
+                  
+                  <div className="flex flex-col h-full">
+                    <h3 className="text-xl font-black text-gray-900 mb-2 group-hover:text-blue-600 transition-colors pr-8">
+                      {trip.name}
+                    </h3>
+                    <p className="text-gray-400 text-sm line-clamp-2 mb-8 font-medium flex-grow">
+                      {trip.description || '这趟旅行还没有添加描述...'}
+                    </p>
+                    
+                    <div className="flex items-center justify-between pt-6 border-t border-gray-50">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1.5 text-gray-400">
+                          <Calendar size={14} className="text-gray-300" />
+                          <span className="text-[11px] font-bold uppercase tracking-tight">{formatDate(trip.create_time).split(' ')[0]}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-gray-400">
+                          <Users size={14} className="text-gray-300" />
+                          <span className="text-[11px] font-bold uppercase tracking-tight">{trip.members?.length || 0} 成员</span>
+                        </div>
+                      </div>
+                      
+                      {/* Avatar stack mock */}
+                      <div className="flex -space-x-2">
+                        {trip.members?.slice(0, 3).map((_, i) => (
+                          <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[8px] font-bold text-gray-400">
+                            U{i+1}
+                          </div>
+                        ))}
+                        {(trip.members?.length || 0) > 3 && (
+                          <div className="w-6 h-6 rounded-full border-2 border-white bg-blue-50 flex items-center justify-center text-[8px] font-bold text-blue-400">
+                            +{(trip.members?.length || 0) - 3}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* Create Trip Modal */}
