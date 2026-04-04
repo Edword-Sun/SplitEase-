@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, Receipt, ArrowRightLeft, ChevronLeft, CreditCard, Users, Trash2 } from 'lucide-react';
 import api from '../api/client';
-import { Trip, Bill, SplitResult, User } from '../types';
+import { Trip, Bill, SplitResult, User, SplitResponseData } from '../types';
 import { formatCentToYuan, formatYuanToCent, formatDate } from '../utils/format';
 import { BILL_CATEGORIES, getCategoryById } from '../utils/constants';
 
@@ -311,7 +311,7 @@ const TripDetailPage = () => {
                       无需进行转账
                     </div>
                   ) : (
-                    splitResults.details.map((detail, i) => (
+                    splitResults.details.map((detail: string, i: number) => (
                       <div key={i} className="p-6 flex items-center justify-between hover:bg-blue-50/20 transition-colors group">
                         <p className="text-gray-700 font-medium">{detail}</p>
                       </div>

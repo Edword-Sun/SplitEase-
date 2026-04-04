@@ -58,7 +58,7 @@ const DashboardPage = () => {
       });
       setShowAddModal(false);
       setNewTrip({ name: '', description: '' });
-      fetchTrips();
+      fetchCreatorTrips();
     } catch (error: any) {
       alert(error.response?.data?.error || '创建失败');
     }
