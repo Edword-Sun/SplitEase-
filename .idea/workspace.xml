@@ -5,18 +5,28 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd8ba586-e53d-4502-8051-f2651cdd0019" name="更改" comment="优化代码">
+      <change afterPath="$PROJECT_DIR$/router/filter/user.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.dockerignore" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/src/main.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/web/src/main.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/src/pages/DashboardPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/web/src/pages/DashboardPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/repository/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/repository/user.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/repository/user_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/repository/user_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/router/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/router/user.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/router/user_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/router/user_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/.dockerignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/node_modules/.vite/deps/_metadata.json" beforeDir="false" afterPath="$PROJECT_DIR$/web/node_modules/.vite/deps/_metadata.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web/src/pages/TripDetailPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/web/src/pages/TripDetailPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/web/tsconfig.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Go File" />
+      </list>
+    </option>
   </component>
   <component name="GOROOT" url="file://$PROJECT_DIR$/../../pkg/mod/golang.org/toolchain@v0.0.1-go1.25.8.windows-amd64" />
   <component name="Git.Settings">
@@ -36,28 +46,31 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Go 构建.go build split_ease/cmd.executor&quot;: &quot;Debug&quot;,
-    &quot;Go 测试.split_ease/repository 中的 TestTripRepository_All.executor&quot;: &quot;Run&quot;,
-    &quot;Go 测试.split_ease/router 中的 TestTripRouter_All.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.modules.automatic.dependencies.download&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
-    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
-    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/20876&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;go.vgo&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;D:\\Program\\GoWorkSpace\\src\\split_ease\\web\\node_modules\\typescript\\lib&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultGoTemplateProperty": "Go File",
+    "Go 构建.go build split_ease/cmd.executor": "Debug",
+    "Go 测试.split_ease/repository 中的 TestTripRepository_All.executor": "Run",
+    "Go 测试.split_ease/repository 中的 TestUserRepository_All.executor": "Run",
+    "Go 测试.split_ease/router 中的 TestTripRouter_All.executor": "Run",
+    "Go 测试.split_ease/router 中的 TestUserRouter_All.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "RunOnceActivity.go.modules.automatic.dependencies.download": "true",
+    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
+    "git-widget-placeholder": "dev",
+    "go.import.settings.migrated": "true",
+    "go.sdk.automatically.set": "true",
+    "last_opened_file_path": "C:/Users/20876",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "go.vgo",
+    "ts.external.directory.path": "D:\\Program\\GoWorkSpace\\src\\split_ease\\web\\node_modules\\typescript\\lib"
   }
-}</component>
-  <component name="RunManager" selected="Go 构建.go build split_ease/cmd">
+}]]></component>
+  <component name="RunManager" selected="Go 测试.split_ease/repository 中的 TestUserRepository_All">
     <configuration name="go build split_ease/cmd" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="split_ease" />
       <working_directory value="$PROJECT_DIR$" />
@@ -79,6 +92,18 @@
       <pattern value="^\QTestTripRepository_All\E$" />
       <method v="2" />
     </configuration>
+    <configuration name="split_ease/repository 中的 TestUserRepository_All" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="split_ease" />
+      <working_directory value="$PROJECT_DIR$/repository" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="split_ease/repository" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestUserRepository_All\E$" />
+      <method v="2" />
+    </configuration>
     <configuration name="split_ease/router 中的 TestTripRouter_All" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="split_ease" />
       <working_directory value="$PROJECT_DIR$/router" />
@@ -91,8 +116,22 @@
       <pattern value="^\QTestTripRouter_All\E$" />
       <method v="2" />
     </configuration>
+    <configuration name="split_ease/router 中的 TestUserRouter_All" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="split_ease" />
+      <working_directory value="$PROJECT_DIR$/router" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="split_ease/router" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestUserRouter_All\E$" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go 测试.split_ease/repository 中的 TestUserRepository_All" />
+        <item itemvalue="Go 测试.split_ease/router 中的 TestUserRouter_All" />
         <item itemvalue="Go 构建.go build split_ease/cmd" />
         <item itemvalue="Go 测试.split_ease/router 中的 TestTripRouter_All" />
         <item itemvalue="Go 测试.split_ease/repository 中的 TestTripRepository_All" />

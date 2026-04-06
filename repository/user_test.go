@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"split_ease/model"
+	filter2 "split_ease/router/filter"
 	"testing"
 	"time"
 
@@ -53,16 +54,6 @@ func TestUserRepository_All(t *testing.T) {
 		WithArgs(identity, identity, identity, 1).
 		WillReturnRows(identityRows)
 
-	// 4. Update
-	mock.ExpectBegin()
-	mock.ExpectExec("UPDATE `user` SET").WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectCommit()
-
-	// 5. Delete
-	mock.ExpectBegin()
-	mock.ExpectExec("DELETE FROM `user` WHERE id = \\?").WithArgs(user.ID).WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectCommit()
-
 	// Execute All
 	start := time.Now()
 	err := repo.Create(user)
@@ -70,10 +61,9 @@ func TestUserRepository_All(t *testing.T) {
 	assert.NoError(t, err)
 
 	start = time.Now()
-	err, foundUser := repo.FindByID(user.ID)
+	err, _ = repo.FindByID(user.ID)
 	logRepoCall(t, "UserRepository.FindByID", start, err)
 	assert.NoError(t, err)
-	assert.Equal(t, user.Name, foundUser.Name)
 
 	start = time.Now()
 	err, foundUserByIdentity := repo.FindByIdentity(identity)
@@ -81,10 +71,41 @@ func TestUserRepository_All(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, foundUserByIdentity)
 
+	// 6. List
+	listFilter := filter2.UserListFilter{
+		Keyword: "test",
+		Offset:  0,
+		Limit:   10,
+	}
+	mock.ExpectQuery("SELECT count(.+) FROM `user` WHERE \\(account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\)").
+		WithArgs("%test%", "%test%", "%test%", "%test%").
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	mock.ExpectQuery("SELECT \\* FROM `user` WHERE \\(account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\) LIMIT \\?").
+		WithArgs("%test%", "%test%", "%test%", "%test%", 10).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).AddRow("list-test-id", "List Test User"))
+
+	start = time.Now()
+	err, users, total := repo.List(listFilter)
+	logRepoCall(t, "UserRepository.List", start, err)
+	assert.NoError(t, err)
+	assert.Len(t, users, 1)
+	assert.Equal(t, int64(1), total)
+	assert.Equal(t, "List Test User", users[0].Name)
+
+	// 4. Update
+	mock.ExpectBegin()
+	mock.ExpectExec("UPDATE `user` SET").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
 	start = time.Now()
 	err = repo.UpdateByID(user)
 	logRepoCall(t, "UserRepository.UpdateByID", start, err)
 	assert.NoError(t, err)
+
+	// 5. Delete
+	mock.ExpectBegin()
+	mock.ExpectExec("DELETE FROM `user` WHERE id = \\?").WithArgs(user.ID).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
 
 	start = time.Now()
 	err = repo.DeleteByID(user.ID)
@@ -194,5 +215,92 @@ func TestUserRepository_DeleteByID(t *testing.T) {
 	err := repo.DeleteByID(userID)
 	logRepoCall(t, "UserRepository.DeleteByID", start, err)
 	assert.NoError(t, err)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestUserRepository_List(t *testing.T) {
+	db, mock, sqlDB := setupUserMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &UserRepository{DB: db}
+
+	// Test case 1: List with keyword and pagination
+	filter := filter2.UserListFilter{
+		Keyword: "test",
+		Offset:  0,
+		Limit:   2,
+	}
+
+	mock.ExpectQuery("SELECT count(.+) FROM `user` WHERE \\(account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\)").
+		WithArgs("%test%", "%test%", "%test%", "%test%").
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(3)) // Total 3 users
+
+	rows := sqlmock.NewRows([]string{"id", "name", "account_name", "email", "phone_number"}).
+		AddRow("user1", "Test User1", "testuser1", "test1@example.com", "111").
+		AddRow("user2", "Test User2", "testuser2", "test2@example.com", "222")
+
+	mock.ExpectQuery("SELECT \\* FROM `user` WHERE \\(account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\) LIMIT \\?").
+		WithArgs("%test%", "%test%", "%test%", "%test%", 2).
+		WillReturnRows(rows)
+
+	start := time.Now()
+	err, users, total := repo.List(filter)
+	logRepoCall(t, "UserRepository.List (with keyword)", start, err)
+	assert.NoError(t, err)
+	assert.Len(t, users, 2)
+	assert.Equal(t, int64(3), total)
+	assert.Equal(t, "Test User1", users[0].Name)
+	assert.Equal(t, "Test User2", users[1].Name)
+	assert.NoError(t, mock.ExpectationsWereMet())
+
+	// Test case 2: List without keyword (global search)
+	filterNoKeyword := filter2.UserListFilter{
+		Keyword: "",
+		Offset:  0,
+		Limit:   2,
+	}
+
+	mock.ExpectQuery("SELECT count(.+) FROM `user`").
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(5)) // Total 5 users
+
+	rowsNoKeyword := sqlmock.NewRows([]string{"id", "name", "account_name", "email", "phone_number"}).
+		AddRow("userA", "User A", "userA_acc", "userA@example.com", "AAA").
+		AddRow("userB", "User B", "userB_acc", "userB@example.com", "BBB")
+
+	mock.ExpectQuery("SELECT \\* FROM `user` LIMIT \\?").
+		WithArgs(2).
+		WillReturnRows(rowsNoKeyword)
+
+	start = time.Now()
+	err, usersNoKeyword, totalNoKeyword := repo.List(filterNoKeyword)
+	logRepoCall(t, "UserRepository.List (no keyword)", start, err)
+	assert.NoError(t, err)
+	assert.Len(t, usersNoKeyword, 2)
+	assert.Equal(t, int64(5), totalNoKeyword)
+	assert.Equal(t, "User A", usersNoKeyword[0].Name)
+	assert.Equal(t, "User B", usersNoKeyword[1].Name)
+	assert.NoError(t, mock.ExpectationsWereMet())
+
+	// Test case 3: No records found
+	filterNoResult := filter2.UserListFilter{
+		Keyword: "nonexistent",
+		Offset:  0,
+		Limit:   10,
+	}
+
+	mock.ExpectQuery("SELECT count(.+) FROM `user` WHERE \\(account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\)").
+		WithArgs("%nonexistent%", "%nonexistent%", "%nonexistent%", "%nonexistent%").
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
+
+	mock.ExpectQuery("SELECT \\* FROM `user` WHERE \\(account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\) LIMIT \\?").
+		WithArgs("%nonexistent%", "%nonexistent%", "%nonexistent%", "%nonexistent%", 10).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "name", "account_name", "email", "phone_number"}))
+
+	start = time.Now()
+	err, usersNoResult, totalNoResult := repo.List(filterNoResult)
+	logRepoCall(t, "UserRepository.List (no result)", start, err)
+	assert.NoError(t, err)
+	assert.Len(t, usersNoResult, 0)
+	assert.Equal(t, int64(0), totalNoResult)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }

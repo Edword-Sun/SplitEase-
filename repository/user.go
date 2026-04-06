@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 
 	"split_ease/model"
+	filter2 "split_ease/router/filter"
 )
 
 type UserRepository struct {
@@ -75,6 +76,7 @@ func (r *UserRepository) UpdateByID(user *model.User) error {
 	}
 	return nil
 }
+
 func (r *UserRepository) DeleteByID(id string) error {
 	query := r.DB.Model(&model.User{})
 	query = query.Where("id = ?", id)
@@ -84,4 +86,31 @@ func (r *UserRepository) DeleteByID(id string) error {
 		return errors.New("内部错误")
 	}
 	return nil
+}
+
+// new todo 测试
+func (r *UserRepository) List(filter filter2.UserListFilter) (error, []*model.User, int64) {
+	keyword := filter.Keyword
+	res := []*model.User{}
+	var total int64
+
+	query := r.DB.Model(&model.User{})
+	if len(keyword) > 0 {
+		k := "%" + keyword + "%"
+		query = query.Where("(account_name LIKE ? OR name LIKE ? OR phone_number LIKE ? OR email LIKE ?)", k, k, k, k)
+	}
+
+	// 先执行 Count 获取总数
+	if err := query.Count(&total).Error; err != nil {
+		log.Println(err)
+		return errors.New("内部错误"), nil, 0
+	}
+
+	// 再执行分页查询数据
+	err := query.Offset(filter.Offset).Limit(filter.Limit).Find(&res).Error
+	if err != nil {
+		log.Println(err)
+		return errors.New("内部错误"), nil, 0
+	}
+	return nil, res, total
 }

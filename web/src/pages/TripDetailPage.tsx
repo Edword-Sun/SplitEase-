@@ -20,7 +20,13 @@ const TripDetailPage = () => {
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [newBill, setNewBill] = useState({ name: '', cost_yuan: '', category: 1, description: '' });
   const [newMemberId, setNewMemberId] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchedUsers, setSearchedUsers] = useState<User[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalSearchedUsers, setTotalSearchedUsers] = useState(0);
   const [error, setError] = useState('');
+  const [memberNames, setMemberNames] = useState<Record<string, string>>({});
   const user: User = JSON.parse(localStorage.getItem('user') || '{}');
 
   const fetchData = async () => {
@@ -29,6 +35,20 @@ const TripDetailPage = () => {
       setError('');
       const tripRes = await api.post('/trip/find_by_id', { id });
       setTrip(tripRes.data.data);
+
+      // Fetch member names
+      const members = tripRes.data.data.members || [];
+      const namesMap: Record<string, string> = {};
+      for (const memberId of members) {
+        try {
+          const userRes = await api.post('/user/find_by_id', { id: memberId });
+          namesMap[memberId] = userRes.data.data.name;
+        } catch (userErr: any) {
+          console.warn(`Failed to fetch name for member ${memberId}:`, userErr.message);
+          namesMap[memberId] = `未知用户 (${memberId.substring(0, 8)}...)`; // Fallback name
+        }
+      }
+      setMemberNames(namesMap);
       
       // Fixed endpoint and parameter name to match backend: /bill/find_by_trip_id
       try {
@@ -72,6 +92,36 @@ const TripDetailPage = () => {
     }
   }, [id, user.id]);
 
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      // 无论 searchKeyword 是否为空，都触发搜索
+      searchUsers(searchKeyword, currentPage);
+    }, 500); // Debounce for 500ms
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchKeyword, currentPage]);
+
+  const searchUsers = async (keyword: string, page: number) => {
+    setSearchLoading(true);
+    try {
+      const response = await api.post('/user/list', { keyword, page, size: 5 }); // 每页显示5个用户
+      if (response.data.code === 0) {
+        setSearchedUsers(response.data.data || []);
+        setTotalSearchedUsers(response.data.total || 0);
+      } else {
+        console.error('Failed to search users:', response.data.message);
+        setSearchedUsers([]);
+        setTotalSearchedUsers(0);
+      }
+    } catch (err: any) {
+      console.error('Failed to search users:', err);
+      setSearchedUsers([]);
+      setTotalSearchedUsers(0);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
   const handleAddBill = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -94,17 +144,24 @@ const TripDetailPage = () => {
     }
   };
 
-  const handleAddMember = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!trip || !newMemberId.trim()) return;
+  const handleAddMember = async (memberIdToAdd: string) => {
+    if (!trip || !memberIdToAdd.trim()) return;
+
+    if (trip.members && trip.members.includes(memberIdToAdd)) {
+      alert('该成员已在旅行中，无需重复添加。');
+      return;
+    }
+
     try {
-      const updatedMembers = [...(trip.members || []), newMemberId.trim()];
+      const updatedMembers = [...(trip.members || []), memberIdToAdd.trim()];
       await api.post('/trip/update_by_id', {
         ...trip,
         members: updatedMembers,
       });
       setShowAddMemberModal(false);
       setNewMemberId('');
+      setSearchKeyword(''); // Clear search keyword after adding
+      setSearchedUsers([]); // Clear search results
       fetchData();
     } catch (err: any) {
       alert(err.response?.data?.error || '添加成员失败');
@@ -128,6 +185,25 @@ const TripDetailPage = () => {
       fetchData();
     } catch (err: any) {
       alert(err.response?.data?.error || '删除失败');
+    }
+  };
+
+  const handleDeleteMember = async (memberIdToDelete: string) => {
+    if (!trip) return;
+
+    if (!window.confirm(`确定要将 ${memberNames[memberIdToDelete] || memberIdToDelete.substring(0, 8) + '...'} 从旅行中移除吗？`)) {
+      return;
+    }
+
+    try {
+      const updatedMembers = (trip.members || []).filter(m => m !== memberIdToDelete);
+      await api.post('/trip/update_by_id', {
+        ...trip,
+        members: updatedMembers,
+      });
+      fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.error || '移除成员失败');
     }
   };
 
@@ -169,11 +245,31 @@ const TripDetailPage = () => {
               <Users size={14} />
               <span>成员:</span>
             </div>
-            {trip.members?.map((m, i) => (
-              <span key={i} className="px-3 py-1 bg-white border border-gray-200 text-gray-600 rounded-full text-xs font-semibold shadow-sm">
-                {m === user.id ? '我' : (m.length > 8 ? m.substring(0, 8) + '...' : m)}
-              </span>
-            ))}
+            {trip.members?.map((m, i) => {
+              const isCreator = trip.creator === m;
+              const isCurrentUser = user.id === m;
+              return (
+                <div 
+                  key={i} 
+                  className={`group relative flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
+                    isCreator 
+                      ? 'bg-yellow-100 border border-yellow-300 text-yellow-800' 
+                      : 'bg-white border border-gray-200 text-gray-600'
+                  }`}
+                >
+                  <span>{isCurrentUser ? `${memberNames[user.id]} (我)` : (memberNames[m] || m.substring(0, 8) + '...')}</span>
+                  {!isCreator && ( // 创作者不能被删除
+                    <button 
+                      onClick={() => handleDeleteMember(m)}
+                      className="ml-1 p-0.5 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="移除成员"
+                    >
+                      <Trash2 size={10} />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
             <button 
               onClick={() => setShowAddMemberModal(true)}
               className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold hover:bg-blue-100 transition-colors flex items-center gap-1 border border-blue-100"
@@ -256,7 +352,7 @@ const TripDetailPage = () => {
                           <span className="text-xs text-gray-400">{formatDate(bill.create_time)}</span>
                           <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
                           <span className="text-xs text-gray-400">
-                            付款人: <span className="text-gray-600 font-medium">{bill.creator === user.id ? '我' : (bill.creator.length > 8 ? bill.creator.substring(0, 8) : bill.creator)}</span>
+                            付款人: <span className="text-gray-600 font-medium">{bill.creator === user.id ? `${memberNames[user.id]} (我)` : (memberNames[bill.creator] || bill.creator.substring(0, 8))}</span>
                           </span>
                         </div>
                       </div>
@@ -467,10 +563,74 @@ const TripDetailPage = () => {
             </div>
             <form onSubmit={handleAddMember} className="p-8 space-y-6">
               <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">搜索成员</label>
+                <input
+                  type="text"
+                  className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold"
+                  placeholder="输入用户名或ID搜索"
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                />
+                {searchLoading && <p className="text-sm text-gray-500 mt-2">搜索中...</p>}
+                {!searchLoading && searchKeyword && searchedUsers.length === 0 && (
+                  <p className="text-sm text-gray-500 mt-2">未找到相关用户。</p>
+                )}
+                {!searchLoading && searchedUsers.length > 0 && (
+                  <div className="mt-4 border border-gray-200 rounded-2xl max-h-48 overflow-y-auto">
+                    {searchedUsers.map((user) => (
+                      <div 
+                        key={user.id} 
+                        className="flex items-center justify-between p-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => setNewMemberId(user.id)}
+                      >
+                        <div>
+                          <p className="font-medium text-gray-800">{user.name}</p>
+                          <p className="text-xs text-gray-500">{user.account_name || user.email || user.phone_number}</p>
+                        </div>
+                        {trip?.members?.includes(user.id) ? (
+                          <span className="text-xs text-gray-400">已在旅行中</span>
+                        ) : (
+                          <button 
+                            type="button" 
+                            className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs hover:bg-blue-600 transition-colors"
+                            onClick={(e) => { e.stopPropagation(); handleAddMember(user.id); }}
+                          >
+                            选择
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {!searchLoading && searchKeyword && searchedUsers.length > 0 && (
+                  <div className="flex justify-between items-center mt-4 text-sm">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      上一页
+                    </button>
+                    <span>
+                      第 {currentPage} 页 / 共 {Math.ceil(totalSearchedUsers / 5)} 页
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(prev => prev + 1)}
+                      disabled={currentPage * 5 >= totalSearchedUsers}
+                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      下一页
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6">
                 <label className="block text-sm font-bold text-gray-700 mb-2">用户唯一标识 (ID)</label>
                 <input
                   type="text"
-                  required
                   autoFocus
                   className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold"
                   placeholder="输入对方的用户ID"
@@ -483,6 +643,24 @@ const TripDetailPage = () => {
                   </p>
                 </div>
               </div>
+
+              {/* Current Members List */}
+              {trip?.members && trip.members.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="text-sm font-bold text-gray-700 mb-3">当前旅行成员 ({trip.members.length})</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {trip.members.map((memberId) => (
+                      <span 
+                        key={memberId} 
+                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium"
+                      >
+                        {memberNames[memberId] || memberId.substring(0, 8) + '...'}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-4 pt-2">
                 <button
                   type="button"
@@ -493,6 +671,7 @@ const TripDetailPage = () => {
                 </button>
                 <button
                   type="submit"
+                  onClick={() => handleAddMember(newMemberId)}
                   className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-100 transition-all active:scale-95"
                 >
                   加入成员
