@@ -165,6 +165,34 @@ func (h *UserHandler) FindByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": result})
 }
 
+func (h *UserHandler) List(c *gin.Context) {
+	var request = struct {
+		Keyword string `json:"keyword"`
+		Page    int    `json:"page"`
+		Size    int    `json:"size"`
+	}{}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	filter := filter2.UserListFilter{}
+
+	filter.Keyword = request.Keyword
+	filter.Limit = request.Size
+	filter.Offset = (request.Page - 1) * request.Size
+	fmt.Println(filter) // todo debug
+	err, res, tol := h.repo.List(filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": 0, "data": res, "total": tol})
+}
+
 func (h *UserHandler) UpdateByID(c *gin.Context) {
 	var request = struct {
 		User *model.User `json:"user"`
@@ -241,33 +269,4 @@ func validatePassword(password string) error {
 	}
 
 	return nil
-}
-
-// new todo 测试
-func (h *UserHandler) List(c *gin.Context) {
-	var request = struct {
-		Keyword string `json:"keyword"`
-		Page    int    `json:"page"`
-		Size    int    `json:"size"`
-	}{}
-
-	if err := c.ShouldBindJSON(&request); err != nil {
-		log.Println(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	filter := filter2.UserListFilter{}
-
-	filter.Keyword = request.Keyword
-	filter.Limit = request.Size
-	filter.Offset = (request.Page - 1) * request.Size
-	fmt.Println(filter) // todo debug
-	err, res, tol := h.repo.List(filter)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"code": 0, "data": res, "total": tol})
 }

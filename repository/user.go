@@ -3,11 +3,11 @@ package repository
 import (
 	"errors"
 	"log"
+	filter2 "split_ease/router/filter"
 
 	"gorm.io/gorm"
 
 	"split_ease/model"
-	filter2 "split_ease/router/filter"
 )
 
 type UserRepository struct {
@@ -63,32 +63,6 @@ func (r *UserRepository) FindByIdentity(identity string) (error, *model.User) {
 	return nil, &result
 }
 
-func (r *UserRepository) UpdateByID(user *model.User) error {
-	if user == nil {
-		log.Println("nil pointer")
-		return errors.New("nil pointer")
-	}
-	query := r.DB.Model(&model.User{}).Where("id = ?", user.ID)
-	err := query.Updates(user).Error
-	if err != nil {
-		log.Println(err)
-		return errors.New("内部错误")
-	}
-	return nil
-}
-
-func (r *UserRepository) DeleteByID(id string) error {
-	query := r.DB.Model(&model.User{})
-	query = query.Where("id = ?", id)
-	err := query.Delete(&model.User{}).Error
-	if err != nil {
-		log.Println(err)
-		return errors.New("内部错误")
-	}
-	return nil
-}
-
-// new todo 测试
 func (r *UserRepository) List(filter filter2.UserListFilter) (error, []*model.User, int64) {
 	keyword := filter.Keyword
 	res := []*model.User{}
@@ -113,4 +87,29 @@ func (r *UserRepository) List(filter filter2.UserListFilter) (error, []*model.Us
 		return errors.New("内部错误"), nil, 0
 	}
 	return nil, res, total
+}
+
+func (r *UserRepository) UpdateByID(user *model.User) error {
+	if user == nil {
+		log.Println("nil pointer")
+		return errors.New("nil pointer")
+	}
+	query := r.DB.Model(&model.User{}).Where("id = ?", user.ID)
+	err := query.Updates(user).Error
+	if err != nil {
+		log.Println(err)
+		return errors.New("内部错误")
+	}
+	return nil
+}
+
+func (r *UserRepository) DeleteByID(id string) error {
+	query := r.DB.Model(&model.User{})
+	query = query.Where("id = ?", id)
+	err := query.Delete(&model.User{}).Error
+	if err != nil {
+		log.Println(err)
+		return errors.New("内部错误")
+	}
+	return nil
 }
