@@ -2,7 +2,6 @@ package router
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"unicode"
@@ -183,7 +182,6 @@ func (h *UserHandler) List(c *gin.Context) {
 	filter.Keyword = request.Keyword
 	filter.Limit = request.Size
 	filter.Offset = (request.Page - 1) * request.Size
-	fmt.Println(filter) // todo debug
 	err, res, tol := h.repo.List(filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
