@@ -35,11 +35,11 @@ func (h *UserHandler) Init(engine *gin.Engine) {
 		g.POST("/register", h.Register)
 		g.POST("/login", h.Login)
 		g.POST("/find_by_id", h.FindByID)
+		g.POST("/list", h.List)
+
 		g.POST("/update_by_id", h.UpdateByID)
 		g.POST("/delete_by_id", h.DeleteByID)
 
-		// new
-		g.POST("/list", h.List)
 	}
 }
 

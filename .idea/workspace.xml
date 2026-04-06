@@ -5,8 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd8ba586-e53d-4502-8051-f2651cdd0019" name="更改" comment="优化代码">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/repository/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/repository/user.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/router/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/router/user.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
