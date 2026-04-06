@@ -110,6 +110,10 @@ func (r *UserRepository) UpdateByID(user *model.User) error {
 }
 
 func (r *UserRepository) DeleteByID(id string) error {
+	if len(id) == 0 {
+		log.Println("id is empty")
+		return errors.New("id is empty")
+	}
 	query := r.DB.Model(&model.User{})
 	query = query.Where("id = ?", id)
 	err := query.Delete(&model.User{}).Error
