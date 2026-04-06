@@ -77,11 +77,11 @@ func TestUserRepository_All(t *testing.T) {
 		Offset:  0,
 		Limit:   10,
 	}
-	mock.ExpectQuery("SELECT count(.+) FROM `user` WHERE \\(account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\)").
-		WithArgs("%test%", "%test%", "%test%", "%test%").
+	mock.ExpectQuery("SELECT count(.+) FROM `user` WHERE \\(id = \\? OR account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\)").
+		WithArgs("test", "%test%", "%test%", "%test%", "%test%").
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
-	mock.ExpectQuery("SELECT \\* FROM `user` WHERE \\(account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\) LIMIT \\?").
-		WithArgs("%test%", "%test%", "%test%", "%test%", 10).
+	mock.ExpectQuery("SELECT \\* FROM `user` WHERE \\(id = \\? OR account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\) LIMIT \\?").
+		WithArgs("test", "%test%", "%test%", "%test%", "%test%", 10).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).AddRow("list-test-id", "List Test User"))
 
 	start = time.Now()
@@ -231,16 +231,16 @@ func TestUserRepository_List(t *testing.T) {
 		Limit:   2,
 	}
 
-	mock.ExpectQuery("SELECT count(.+) FROM `user` WHERE \\(account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\)").
-		WithArgs("%test%", "%test%", "%test%", "%test%").
+	mock.ExpectQuery("SELECT count(.+) FROM `user` WHERE \\(id = \\? OR account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\)").
+		WithArgs("test", "%test%", "%test%", "%test%", "%test%").
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(3)) // Total 3 users
 
 	rows := sqlmock.NewRows([]string{"id", "name", "account_name", "email", "phone_number"}).
 		AddRow("user1", "Test User1", "testuser1", "test1@example.com", "111").
 		AddRow("user2", "Test User2", "testuser2", "test2@example.com", "222")
 
-	mock.ExpectQuery("SELECT \\* FROM `user` WHERE \\(account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\) LIMIT \\?").
-		WithArgs("%test%", "%test%", "%test%", "%test%", 2).
+	mock.ExpectQuery("SELECT \\* FROM `user` WHERE \\(id = \\? OR account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\) LIMIT \\?").
+		WithArgs("test", "%test%", "%test%", "%test%", "%test%", 2).
 		WillReturnRows(rows)
 
 	start := time.Now()
@@ -288,13 +288,11 @@ func TestUserRepository_List(t *testing.T) {
 		Limit:   10,
 	}
 
-	mock.ExpectQuery("SELECT count(.+) FROM `user` WHERE \\(account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\)").
-		WithArgs("%nonexistent%", "%nonexistent%", "%nonexistent%", "%nonexistent%").
+	mock.ExpectQuery("SELECT count(.+) FROM `user` WHERE \\(id = \\? OR account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\)").
+		WithArgs("nonexistent", "%nonexistent%", "%nonexistent%", "%nonexistent%", "%nonexistent%").
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 
-	mock.ExpectQuery("SELECT \\* FROM `user` WHERE \\(account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\) LIMIT \\?").
-		WithArgs("%nonexistent%", "%nonexistent%", "%nonexistent%", "%nonexistent%", 10).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "name", "account_name", "email", "phone_number"}))
+	// No subsequent SELECT should happen because total is 0
 
 	start = time.Now()
 	err, usersNoResult, totalNoResult := repo.List(filterNoResult)
@@ -302,5 +300,26 @@ func TestUserRepository_List(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, usersNoResult, 0)
 	assert.Equal(t, int64(0), totalNoResult)
+	assert.NoError(t, mock.ExpectationsWereMet())
+
+	// Test case 4: Search "123" with no matches
+	filter123 := filter2.UserListFilter{
+		Keyword: "123",
+		Offset:  0,
+		Limit:   10,
+	}
+
+	mock.ExpectQuery("SELECT count(.+) FROM `user` WHERE \\(id = \\? OR account_name LIKE \\? OR name LIKE \\? OR phone_number LIKE \\? OR email LIKE \\?\\)").
+		WithArgs("123", "%123%", "%123%", "%123%", "%123%").
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
+
+	// No subsequent SELECT should happen because total is 0
+
+	start = time.Now()
+	err, users123, total123 := repo.List(filter123)
+	logRepoCall(t, "UserRepository.List (search 123 - no match)", start, err)
+	assert.NoError(t, err)
+	assert.Len(t, users123, 0)
+	assert.Equal(t, int64(0), total123)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }

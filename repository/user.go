@@ -68,20 +68,26 @@ func (r *UserRepository) List(filter filter2.UserListFilter) (error, []*model.Us
 	res := []*model.User{}
 	var total int64
 
-	query := r.DB.Model(&model.User{})
+	db := r.DB.Model(&model.User{})
+	// 如果关键字不为空，则添加模糊查询条件；如果为空，则执行全局无条件搜索
 	if len(keyword) > 0 {
 		k := "%" + keyword + "%"
-		query = query.Where("(account_name LIKE ? OR name LIKE ? OR phone_number LIKE ? OR email LIKE ?)", k, k, k, k)
+		// todo 展示去掉条件: OR phone_number LIKE ? OR email LIKE ?
+		db = db.Where("(id = ? OR account_name LIKE ? OR name LIKE ?)", keyword, k, k)
 	}
 
-	// 先执行 Count 获取总数
-	if err := query.Count(&total).Error; err != nil {
+	// 使用 Session 隔离 Count 操作，避免修改原查询对象的内部状态导致后续 Find 出错
+	if err := db.Session(&gorm.Session{}).Count(&total).Error; err != nil {
 		log.Println(err)
 		return errors.New("内部错误"), nil, 0
 	}
 
-	// 再执行分页查询数据
-	err := query.Offset(filter.Offset).Limit(filter.Limit).Find(&res).Error
+	if total == 0 {
+		return nil, res, 0
+	}
+
+	// 使用原查询对象执行分页查询
+	err := db.Offset(filter.Offset).Limit(filter.Limit).Find(&res).Error
 	if err != nil {
 		log.Println(err)
 		return errors.New("内部错误"), nil, 0

@@ -5,7 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd8ba586-e53d-4502-8051-f2651cdd0019" name="更改" comment="优化代码">
-      <change beforePath="$PROJECT_DIR$/router/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/router/user.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/repository/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/repository/user.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/repository/user_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/repository/user_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/src/pages/TripDetailPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/web/src/pages/TripDetailPage.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,7 +64,7 @@
     "ts.external.directory.path": "D:\\Program\\GoWorkSpace\\src\\split_ease\\web\\node_modules\\typescript\\lib"
   }
 }]]></component>
-  <component name="RunManager" selected="Go 测试.split_ease/repository 中的 TestUserRepository_All">
+  <component name="RunManager" selected="Go 构建.go build split_ease/cmd">
     <configuration name="go build split_ease/cmd" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="split_ease" />
       <working_directory value="$PROJECT_DIR$" />
@@ -121,9 +124,9 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go 构建.go build split_ease/cmd" />
         <item itemvalue="Go 测试.split_ease/repository 中的 TestUserRepository_All" />
         <item itemvalue="Go 测试.split_ease/router 中的 TestUserRouter_All" />
-        <item itemvalue="Go 构建.go build split_ease/cmd" />
         <item itemvalue="Go 测试.split_ease/router 中的 TestTripRouter_All" />
         <item itemvalue="Go 测试.split_ease/repository 中的 TestTripRepository_All" />
       </list>

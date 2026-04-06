@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, Receipt, ArrowRightLeft, ChevronLeft, CreditCard, Users, Trash2 } from 'lucide-react';
+import { Plus, Receipt, ArrowRightLeft, ChevronLeft, CreditCard, Users, Trash2, Search } from 'lucide-react';
 import api from '../api/client';
 import { Trip, Bill, SplitResult, User, SplitResponseData } from '../types';
 import { formatCentToYuan, formatYuanToCent, formatDate } from '../utils/format';
@@ -84,6 +84,33 @@ const TripDetailPage = () => {
     }
   };
 
+  const searchUsers = async (keyword: string, page: number) => {
+    setSearchLoading(true);
+    setError(''); // 重置错误状态
+    try {
+      const response = await api.post('/user/list', { keyword, page, size: 5 }); // 每页显示5个用户
+      // 后端结构是 {code: 0, data: [...], total: 10}
+      if (response.data && response.data.code === 0) {
+        setSearchedUsers(response.data.data || []);
+        setTotalSearchedUsers(response.data.total || 0);
+      } else {
+        const errorMsg = response.data?.message || '搜索失败，请重试';
+        console.error('Failed to search users:', errorMsg);
+        setError(errorMsg);
+        setSearchedUsers([]);
+        setTotalSearchedUsers(0);
+      }
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.error || '网络错误，请稍后重试';
+      console.error('Failed to search users:', err);
+      setError(errorMsg);
+      setSearchedUsers([]);
+      setTotalSearchedUsers(0);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
     if (user.id) {
@@ -93,33 +120,28 @@ const TripDetailPage = () => {
   }, [id, user.id]);
 
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      // 无论 searchKeyword 是否为空，都触发搜索
-      searchUsers(searchKeyword, currentPage);
-    }, 500); // Debounce for 500ms
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchKeyword, currentPage]);
-
-  const searchUsers = async (keyword: string, page: number) => {
-    setSearchLoading(true);
-    try {
-      const response = await api.post('/user/list', { keyword, page, size: 5 }); // 每页显示5个用户
-      if (response.data.code === 0) {
-        setSearchedUsers(response.data.data || []);
-        setTotalSearchedUsers(response.data.total || 0);
-      } else {
-        console.error('Failed to search users:', response.data.message);
-        setSearchedUsers([]);
-        setTotalSearchedUsers(0);
-      }
-    } catch (err: any) {
-      console.error('Failed to search users:', err);
-      setSearchedUsers([]);
-      setTotalSearchedUsers(0);
-    } finally {
-      setSearchLoading(false);
+    if (showAddMemberModal) {
+      searchUsers('', 1);
     }
+  }, [showAddMemberModal]);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    searchUsers(searchKeyword, newPage);
+  };
+
+  const handleSearchClick = (e?: React.SyntheticEvent) => {
+    e?.preventDefault();
+    setCurrentPage(1);
+    searchUsers(searchKeyword, 1);
+  };
+
+  const handleCloseAddMemberModal = () => {
+    setShowAddMemberModal(false);
+    setSearchKeyword('');
+    setSearchedUsers([]);
+    setCurrentPage(1);
+    setNewMemberId('');
   };
 
   const handleAddBill = async (e: React.FormEvent) => {
@@ -158,10 +180,7 @@ const TripDetailPage = () => {
         ...trip,
         members: updatedMembers,
       });
-      setShowAddMemberModal(false);
-      setNewMemberId('');
-      setSearchKeyword(''); // Clear search keyword after adding
-      setSearchedUsers([]); // Clear search results
+      handleCloseAddMemberModal();
       fetchData();
     } catch (err: any) {
       alert(err.response?.data?.error || '添加成员失败');
@@ -554,127 +573,130 @@ const TripDetailPage = () => {
 
       {showAddMemberModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-sm rounded-[32px] shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
+          <div className="bg-white w-full max-w-md rounded-[32px] shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
             <div className="px-8 py-6 border-b flex items-center justify-between bg-blue-600 text-white">
               <h3 className="text-xl font-bold">邀请成员</h3>
-              <button onClick={() => setShowAddMemberModal(false)}>
+              <button onClick={handleCloseAddMemberModal}>
                 <Plus size={28} className="rotate-45" />
               </button>
             </div>
-            <form onSubmit={handleAddMember} className="p-8 space-y-6">
+            <form onSubmit={(e) => { e.preventDefault(); handleSearchClick(e); }} className="p-8 space-y-6">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">搜索成员</label>
-                <input
-                  type="text"
-                  className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold"
-                  placeholder="输入用户名或ID搜索"
-                  value={searchKeyword}
-                  onChange={(e) => setSearchKeyword(e.target.value)}
-                />
-                {searchLoading && <p className="text-sm text-gray-500 mt-2">搜索中...</p>}
-                {!searchLoading && searchKeyword && searchedUsers.length === 0 && (
-                  <p className="text-sm text-gray-500 mt-2">未找到相关用户。</p>
-                )}
-                {!searchLoading && searchedUsers.length > 0 && (
-                  <div className="mt-4 border border-gray-200 rounded-2xl max-h-48 overflow-y-auto">
-                    {searchedUsers.map((user) => (
-                      <div 
-                        key={user.id} 
-                        className="flex items-center justify-between p-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 cursor-pointer"
-                        onClick={() => setNewMemberId(user.id)}
+                <label className="block text-sm font-bold text-gray-700 mb-2">搜索用户并添加</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    className="flex-1 px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold"
+                    placeholder="输入用户名/邮箱/手机号"
+                    value={searchKeyword}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSearchClick}
+                    className="px-6 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-2"
+                  >
+                    <Search size={18} />
+                    搜索
+                  </button>
+                </div>
+
+                <div className="mt-6 min-h-[200px] flex flex-col">
+                  {searchLoading ? (
+                    <div className="flex-grow flex flex-col items-center justify-center py-10">
+                      <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                      <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">搜索中...</p>
+                    </div>
+                  ) : error ? (
+                    <div className="flex-grow flex flex-col items-center justify-center py-10 text-center">
+                      <p className="text-red-400 text-sm font-bold">{error}</p>
+                      <button 
+                        type="button"
+                        onClick={() => searchUsers(searchKeyword, 1)}
+                        className="mt-2 text-blue-600 text-xs font-bold hover:underline"
                       >
-                        <div>
-                          <p className="font-medium text-gray-800">{user.name}</p>
-                          <p className="text-xs text-gray-500">{user.account_name || user.email || user.phone_number}</p>
-                        </div>
-                        {trip?.members?.includes(user.id) ? (
-                          <span className="text-xs text-gray-400">已在旅行中</span>
-                        ) : (
-                          <button 
-                            type="button" 
-                            className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs hover:bg-blue-600 transition-colors"
-                            onClick={(e) => { e.stopPropagation(); handleAddMember(user.id); }}
-                          >
-                            选择
-                          </button>
-                        )}
+                        点击重试
+                      </button>
+                    </div>
+                  ) : searchedUsers.length === 0 ? (
+                    <div className="flex-grow flex flex-col items-center justify-center py-10 text-center">
+                      <p className="text-gray-400 text-sm font-bold">
+                        {searchKeyword ? `未找到与 "${searchKeyword}" 相关的用户` : '暂无更多用户'}
+                      </p>
+                      <p className="text-[10px] text-gray-300 mt-1 uppercase tracking-tighter">Try a different keyword</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="border border-gray-100 rounded-2xl max-h-60 overflow-y-auto shadow-inner bg-gray-50/30">
+                        {searchedUsers.map((u) => {
+                          const isAlreadyMember = trip?.members?.includes(u.id);
+                          return (
+                            <div 
+                              key={u.id} 
+                              className="flex items-center justify-between p-4 border-b border-gray-50 last:border-b-0 hover:bg-white cursor-pointer transition-colors"
+                              onClick={() => !isAlreadyMember && handleAddMember(u.id)}
+                            >
+                              <div>
+                                <p className="font-bold text-gray-800">{u.name}</p>
+                                <p className="text-xs text-gray-400 font-medium">@{u.account_name}</p>
+                              </div>
+                              {isAlreadyMember ? (
+                                <span className="text-[10px] text-gray-300 font-black bg-gray-100 px-3 py-1 rounded-full uppercase">已经在旅行中</span>
+                              ) : (
+                                <button 
+                                  type="button" 
+                                  className="px-4 py-1.5 bg-blue-500 text-white rounded-xl text-xs font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-100 active:scale-95"
+                                  onClick={(e) => { e.stopPropagation(); handleAddMember(u.id); }}
+                                >
+                                  选择
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
-                )}
-                {!searchLoading && searchKeyword && searchedUsers.length > 0 && (
-                  <div className="flex justify-between items-center mt-4 text-sm">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      上一页
-                    </button>
-                    <span>
-                      第 {currentPage} 页 / 共 {Math.ceil(totalSearchedUsers / 5)} 页
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setCurrentPage(prev => prev + 1)}
-                      disabled={currentPage * 5 >= totalSearchedUsers}
-                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      下一页
-                    </button>
-                  </div>
-                )}
-              </div>
 
-              <div className="mt-6">
-                <label className="block text-sm font-bold text-gray-700 mb-2">用户唯一标识 (ID)</label>
-                <input
-                  type="text"
-                  autoFocus
-                  className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold"
-                  placeholder="输入对方的用户ID"
-                  value={newMemberId}
-                  onChange={(e) => setNewMemberId(e.target.value)}
-                />
-                <div className="mt-4 p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                  <p className="text-[11px] text-blue-600 font-medium leading-relaxed">
-                    💡 提示：目前请通过用户注册时的 ID 进行添加。对方加入后，所有账单将自动包含该成员。
-                  </p>
+                      {/* Pagination */}
+                      <div className="flex justify-between items-center mt-6 text-sm">
+                        <button
+                          type="button"
+                          onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                          disabled={currentPage === 1}
+                          className="px-4 py-2 border border-gray-100 rounded-xl text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        >
+                          上一页
+                        </button>
+                        <span className="text-gray-400 font-bold text-[11px] uppercase tracking-wider">
+                          Page {currentPage} / {Math.ceil(totalSearchedUsers / 5)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage * 5 >= totalSearchedUsers}
+                          className="px-4 py-2 border border-gray-100 rounded-xl text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        >
+                          下一页
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
-              {/* Current Members List */}
-              {trip?.members && trip.members.length > 0 && (
-                <div className="mt-6">
-                  <h4 className="text-sm font-bold text-gray-700 mb-3">当前旅行成员 ({trip.members.length})</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {trip.members.map((memberId) => (
-                      <span 
-                        key={memberId} 
-                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium"
-                      >
-                        {memberNames[memberId] || memberId.substring(0, 8) + '...'}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div className="mt-2 p-5 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                <p className="text-[11px] text-blue-600 font-bold leading-relaxed flex gap-2">
+                  <span className="shrink-0">💡</span>
+                  <span>提示：点击搜索或按回车键查找用户。如果您知道对方的确切 ID，也可以直接在搜索框输入 ID 进行查找。</span>
+                </p>
+              </div>
 
               <div className="flex gap-4 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowAddMemberModal(false)}
-                  className="flex-1 px-6 py-4 border border-gray-100 text-gray-500 rounded-2xl hover:bg-gray-50 font-bold transition-all"
+                  onClick={handleCloseAddMemberModal}
+                  className="flex-1 px-6 py-4 border border-gray-100 text-gray-500 rounded-2xl hover:bg-gray-50 font-bold transition-all active:scale-95"
                 >
-                  取消
-                </button>
-                <button
-                  type="submit"
-                  onClick={() => handleAddMember(newMemberId)}
-                  className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-100 transition-all active:scale-95"
-                >
-                  加入成员
+                  关闭
                 </button>
               </div>
             </form>
