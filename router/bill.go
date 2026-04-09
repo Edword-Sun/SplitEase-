@@ -27,6 +27,10 @@ func (h *BillHandler) Init(engine *gin.Engine) {
 		g.POST("/add", h.Add)
 		g.POST("/find_by_id", h.FindByID)
 		g.POST("/find_by_trip_id", h.FindByTripID)
+		// TODO
+		// g.POST("/find_by_member_id", h.FindByMemberID)
+		// g.POST("/find_by_payer_id", h.FindByPayerID)
+
 		g.POST("/update_by_id", h.UpdateByID)
 		g.POST("/delete_by_id", h.DeleteByID)
 

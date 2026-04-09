@@ -228,31 +228,87 @@ func (h *TripHandler) Split(c *gin.Context) {
 	//	return
 	//}
 
-	// 1. 计算总花费和每个人的支付情况
-	var tripAllCosts int64 = 0
-	type userPayInfo struct {
-		user *model.User
-		paid int64
-	}
-	userPayments := make([]userPayInfo, 0, len(curMembers))
-
+	// 1. 使用 Map 记录每个人的净差额 (balance = 已付 - 应付)
+	balanceMap := make(map[string]int64)
+	userNameMap := make(map[string]string)
 	for _, user := range curMembers {
-		var userPaid int64 = 0
-		for _, bill := range curBills {
-			if bill.Creator == user.ID {
-				userPaid += bill.CostCent
+		balanceMap[user.ID] = 0
+		userNameMap[user.ID] = user.Name
+	}
+
+	type BillSplitMemberDetail struct {
+		Name  string `json:"name"`
+		Share string `json:"share"`
+	}
+	type BillSplitDetail struct {
+		BillName   string                  `json:"bill_name"`
+		PayerName  string                  `json:"payer_name"`
+		TotalCosts string                  `json:"total_costs"`
+		Splits     []BillSplitMemberDetail `json:"splits"`
+	}
+	billDetails := []BillSplitDetail{}
+
+	var tripAllCosts int64 = 0
+	for _, bill := range curBills {
+		// 参与者分摊：如果未指定参与者，默认全员分摊
+		participants := bill.InvolvedMembers
+		if len(participants) == 0 {
+			participants = curTrip.Members
+		}
+
+		if len(participants) == 0 {
+			continue
+		}
+
+		// 累加总支出
+		tripAllCosts += bill.CostCent
+
+		// 计算份额
+		count := int64(len(participants))
+		share := bill.CostCent / count
+		remainder := bill.CostCent % count
+
+		// 记录当前账单的详细分摊
+		currentBillSplits := []BillSplitMemberDetail{}
+
+		// 只有当分摊者是当前成员时，这部分钱才计入内部结算
+		var memberTotalShare int64 = 0
+		for i, pID := range participants {
+			s := share
+			if int64(i) < remainder {
+				s += 1
+			}
+
+			// 如果是当前成员，记录分摊详情
+			if name, ok := userNameMap[pID]; ok {
+				balanceMap[pID] -= s
+				memberTotalShare += s
+				currentBillSplits = append(currentBillSplits, BillSplitMemberDetail{
+					Name:  name,
+					Share: fmt.Sprintf("%.2f", float64(s)/100.0),
+				})
 			}
 		}
-		userPayments = append(userPayments, userPayInfo{user: user, paid: userPaid})
-		tripAllCosts += userPaid
+
+		// 如果付款人是当前成员，他获得的信用仅限于他为“当前组成员”垫付的部分
+		if _, ok := balanceMap[bill.PayerID]; ok {
+			balanceMap[bill.PayerID] += memberTotalShare
+		}
+
+		// 添加账单明细
+		payerName := userNameMap[bill.PayerID]
+		if payerName == "" {
+			payerName = "外部人员"
+		}
+		billDetails = append(billDetails, BillSplitDetail{
+			BillName:   bill.Name,
+			PayerName:  payerName,
+			TotalCosts: fmt.Sprintf("%.2f", float64(bill.CostCent)/100.0),
+			Splits:     currentBillSplits,
+		})
 	}
 
-	// 2. 计算人均及余数 (处理除不尽的情况)
-	memberCount := int64(len(curMembers))
-	avgCosts := tripAllCosts / memberCount
-	remainder := tripAllCosts % memberCount
-
-	// 3. 计算每个人的差额 (balance = 已付 - 应付)
+	// 2. 收集债务人和债权人
 	type userBalance struct {
 		user    *model.User
 		balance int64
@@ -260,22 +316,17 @@ func (h *TripHandler) Split(c *gin.Context) {
 	debtors := []userBalance{}   // 欠钱的人 (负值)
 	creditors := []userBalance{} // 该收钱的人 (正值)
 
-	for i, up := range userPayments {
-		// 分摊金额：前 remainder 个人多摊 1 分钱 (1角)
-		share := avgCosts
-		if int64(i) < remainder {
-			share += 1
-		}
-
-		diff := up.paid - share
-		if diff > 0 {
-			creditors = append(creditors, userBalance{user: up.user, balance: diff})
-		} else if diff < 0 {
-			debtors = append(debtors, userBalance{user: up.user, balance: -diff}) // 存正数方便计算
+	// 按顺序遍历，保证稳定性
+	for _, user := range curMembers {
+		balance := balanceMap[user.ID]
+		if balance > 0 {
+			creditors = append(creditors, userBalance{user: user, balance: balance})
+		} else if balance < 0 {
+			debtors = append(debtors, userBalance{user: user, balance: -balance})
 		}
 	}
 
-	// 4. 贪心算法匹配转账逻辑
+	// 3. 贪心算法匹配转账逻辑
 	transactions := []string{}
 	i, j := 0, 0
 	for i < len(debtors) && j < len(creditors) {
@@ -289,7 +340,7 @@ func (h *TripHandler) Split(c *gin.Context) {
 		}
 
 		if amount > 0 {
-			// 格式化输出：A 支付给 B 多少钱 (单位从角转为元显示，100角=1元)
+			// 格式化输出：A 支付给 B 多少钱
 			transaction := fmt.Sprintf("%s 支付给 %s: %.2f 元",
 				debtor.user.Name,
 				creditor.user.Name,
@@ -311,10 +362,10 @@ func (h *TripHandler) Split(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "success",
 		"data": gin.H{
-			"trip_name":   curTrip.Name,
-			"total_costs": toYuan(tripAllCosts), // 结果是字符串 "123.45"
-			"avg_costs":   toYuan(avgCosts),
-			"details":     transactions,
+			"trip_name":    curTrip.Name,
+			"total_costs":  toYuan(tripAllCosts),
+			"details":      transactions,
+			"bill_details": billDetails,
 		},
 	})
 }

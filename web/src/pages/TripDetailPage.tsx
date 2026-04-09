@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, Receipt, ArrowRightLeft, ChevronLeft, CreditCard, Users, Trash2, Search } from 'lucide-react';
+import { Plus, Receipt, ArrowRightLeft, ChevronLeft, CreditCard, Users, Trash2, Search, Pencil, ArrowRight, CheckCircle2 } from 'lucide-react';
 import api from '../api/client';
 import { Trip, Bill, SplitResult, User, SplitResponseData } from '../types';
 import { formatCentToYuan, formatYuanToCent, formatDate } from '../utils/format';
@@ -9,16 +9,26 @@ import { BILL_CATEGORIES, getCategoryById } from '../utils/constants';
 const TripDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const user: User = JSON.parse(localStorage.getItem('user') || '{}');
   const [trip, setTrip] = useState<Trip | null>(null);
   const [bills, setBills] = useState<Bill[]>([]);
   const [splitResults, setSplitResults] = useState<SplitResponseData | null>(null);
   const [creatorTrips, setCreatorTrips] = useState<Trip[]>([]);
   const [memberTrips, setMemberTrips] = useState<Trip[]>([]);
+  const [showOtherTrips, setShowOtherTrips] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'bills' | 'split'>('bills');
   const [showAddBillModal, setShowAddBillModal] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
-  const [newBill, setNewBill] = useState({ name: '', cost_yuan: '', category: 1, description: '' });
+  const [newBill, setNewBill] = useState({ 
+    name: '', 
+    cost_yuan: '', 
+    category: 1, 
+    description: '', 
+    involved_members: [] as string[],
+    payer_id: user.id
+  });
+  const [editingBillId, setEditingBillId] = useState<string | null>(null);
   const [newMemberId, setNewMemberId] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchedUsers, setSearchedUsers] = useState<User[]>([]);
@@ -27,7 +37,7 @@ const TripDetailPage = () => {
   const [totalSearchedUsers, setTotalSearchedUsers] = useState(0);
   const [error, setError] = useState('');
   const [memberNames, setMemberNames] = useState<Record<string, string>>({});
-  const user: User = JSON.parse(localStorage.getItem('user') || '{}');
+  const [filterCategory, setFilterCategory] = useState<number | null>(null);
 
   const fetchData = async () => {
     try {
@@ -53,7 +63,12 @@ const TripDetailPage = () => {
       // Fixed endpoint and parameter name to match backend: /bill/find_by_trip_id
       try {
         const billRes = await api.post('/bill/find_by_trip_id', { id });
-        setBills(billRes.data.data || []);
+        const fetchedBills = billRes.data.data || [];
+        // Ensure reverse chronological order by create_time
+        const sortedBills = [...fetchedBills].sort((a: Bill, b: Bill) => 
+          new Date(b.create_time).getTime() - new Date(a.create_time).getTime()
+        );
+        setBills(sortedBills);
       } catch (err: any) {
         console.warn('Bill listing API might be missing:', err.message);
         setBills([]);
@@ -152,18 +167,45 @@ const TripDetailPage = () => {
         alert('请输入有效金额');
         return;
       }
-      await api.post('/bill/add', {
+      
+      const payload = {
         ...newBill,
         cost_cent: costCent,
         trip_id: id,
-        creator: user.id,
-      });
+        creator: user.id, // 记录谁录入的
+        payer_id: newBill.payer_id, // 记录谁付钱的
+        involved_members: newBill.involved_members,
+      };
+
+      if (editingBillId) {
+        await api.post('/bill/update_by_id', {
+          ...payload,
+          id: editingBillId,
+        });
+      } else {
+        await api.post('/bill/add', payload);
+      }
+
       setShowAddBillModal(false);
-      setNewBill({ name: '', cost_yuan: '', category: 1, description: '' });
+      setEditingBillId(null);
+      setNewBill({ name: '', cost_yuan: '', category: 1, description: '', involved_members: [], payer_id: user.id });
       fetchData();
     } catch (err: any) {
       alert(err.response?.data?.error || '账单保存失败');
     }
+  };
+
+  const handleEditClick = (bill: Bill) => {
+    setNewBill({
+      name: bill.name,
+      cost_yuan: formatCentToYuan(bill.cost_cent),
+      category: bill.category,
+      description: bill.description,
+      involved_members: bill.involved_members || [],
+      payer_id: bill.payer_id || bill.creator || user.id
+    });
+    setEditingBillId(bill.id);
+    setShowAddBillModal(true);
   };
 
   const handleAddMember = async (memberIdToAdd: string) => {
@@ -300,7 +342,18 @@ const TripDetailPage = () => {
         </div>
         <div className="flex gap-3">
           <button
-            onClick={() => setShowAddBillModal(true)}
+            onClick={() => {
+              setEditingBillId(null);
+              setNewBill({ 
+                name: '', 
+                cost_yuan: '', 
+                category: 1, 
+                description: '', 
+                involved_members: trip?.members || [],
+                payer_id: user.id
+              });
+              setShowAddBillModal(true);
+            }}
             className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 font-bold active:scale-95"
           >
             <Receipt size={20} />
@@ -341,7 +394,43 @@ const TripDetailPage = () => {
       {/* Content Area */}
       <div className="min-h-[400px]">
         {activeTab === 'bills' ? (
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Category Filter */}
+            {bills.length > 0 && (
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2">
+                <button
+                  onClick={() => setFilterCategory(null)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border-2 ${
+                    filterCategory === null 
+                      ? 'border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-100' 
+                      : 'border-gray-100 bg-white text-gray-400 hover:border-blue-200'
+                  }`}
+                >
+                  全部
+                </button>
+                {Object.values(BILL_CATEGORIES)
+                  .sort((a, b) => {
+                    if (a.id === 0) return 1;
+                    if (b.id === 0) return -1;
+                    return a.id - b.id;
+                  })
+                  .map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setFilterCategory(cat.id)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border-2 ${
+                        filterCategory === cat.id 
+                          ? 'border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-100' 
+                          : 'border-gray-100 bg-white text-gray-400 hover:border-blue-200'
+                      }`}
+                    >
+                      <cat.icon size={14} />
+                      {cat.label}
+                    </button>
+                  ))}
+              </div>
+            )}
+
             {bills.length === 0 ? (
               <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100">
                 <div className="mx-auto w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-200 mb-4">
@@ -356,42 +445,104 @@ const TripDetailPage = () => {
                 </button>
               </div>
             ) : (
-              bills.map((bill) => {
-                const category = getCategoryById(bill.category);
-                const Icon = category.icon;
-                return (
-                  <div key={bill.id} className="bg-white p-5 rounded-2xl border border-gray-50 shadow-sm flex items-center justify-between group hover:border-blue-100 hover:shadow-md transition-all">
-                    <div className="flex items-center gap-5">
-                      <div className={`w-14 h-14 ${category.color} rounded-2xl flex items-center justify-center transition-all shadow-sm`}>
-                        <Icon size={28} />
+              <div className="space-y-4">
+                {(() => {
+                  const filtered = bills.filter(bill => filterCategory === null || bill.category === filterCategory);
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100">
+                        <div className="mx-auto w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-200 mb-4">
+                          <Receipt size={32} />
+                        </div>
+                        <p className="text-gray-400 font-medium">该分类下暂无账单</p>
+                        <button 
+                          onClick={() => setFilterCategory(null)}
+                          className="mt-4 text-blue-600 font-bold text-sm hover:underline"
+                        >
+                          查看全部
+                        </button>
                       </div>
-                      <div>
-                        <h4 className="font-bold text-gray-900 text-lg leading-tight">{bill.name}</h4>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-gray-400">{formatDate(bill.create_time)}</span>
-                          <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                          <span className="text-xs text-gray-400">
-                            付款人: <span className="text-gray-600 font-medium">{bill.creator === user.id ? `${memberNames[user.id]} (我)` : (memberNames[bill.creator] || bill.creator.substring(0, 8))}</span>
+                    );
+                  }
+                  return filtered.map((bill) => {
+                    const category = getCategoryById(bill.category);
+                    const Icon = category.icon;
+                    return (
+                      <div key={bill.id} className="bg-white p-5 rounded-2xl border border-gray-50 shadow-sm flex items-center justify-between group hover:border-blue-100 hover:shadow-md transition-all">
+                        <div className="flex items-center gap-5">
+                          <div className={`w-14 h-14 ${category.color} rounded-2xl flex items-center justify-center transition-all shadow-sm`}>
+                            <Icon size={28} />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-gray-900 text-lg leading-tight">{bill.name}</h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs text-gray-400">{formatDate(bill.create_time)}</span>
+                              <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                              <span className="text-xs text-gray-400">
+                            付款人: <span className="text-gray-600 font-medium">
+                              {(() => {
+                                const actualPayerId = bill.payer_id || bill.creator;
+                                if (actualPayerId === user.id) return '(我)';
+                                return memberNames[actualPayerId] || actualPayerId?.substring(0, 8) || '未知';
+                              })()}
+                            </span>
                           </span>
+                            </div>
+                            {bill.involved_members && bill.involved_members.length > 0 && (
+                              <div className="flex items-center gap-1.5 mt-2 overflow-x-auto no-scrollbar max-w-[200px] md:max-w-xs">
+                                <span className="text-[10px] text-gray-300 font-bold uppercase tracking-tighter whitespace-nowrap">分摊:</span>
+                                <div className="flex -space-x-1.5">
+                                  {bill.involved_members.map((mId, idx) => (
+                                    <div 
+                                      key={mId} 
+                                      className="w-5 h-5 rounded-full border border-white bg-blue-50 flex items-center justify-center text-[8px] font-bold text-blue-500 shadow-sm"
+                                      title={memberNames[mId] || '未知用户'}
+                                    >
+                                      {memberNames[mId]?.[0] || 'U'}
+                                    </div>
+                                  ))}
+                                </div>
+                                <span className="text-[10px] text-gray-400 font-medium truncate">
+                                  {bill.involved_members.length === (trip?.members?.length || 0) 
+                                    ? '全员' 
+                                    : bill.involved_members.map(id => memberNames[id] || '未知').join(', ')}
+                                </span>
+                                {bill.involved_members.length > 0 && bill.involved_members.length < (trip?.members?.length || 0) && (
+                                  <span className="ml-1 px-1.5 py-0.5 bg-blue-100 text-blue-600 text-[8px] font-black rounded-md uppercase">
+                                    ￥{formatCentToYuan(Math.ceil(bill.cost_cent / bill.involved_members.length))}/人
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          <div className="text-right">
+                            <p className="text-2xl font-black text-gray-900">￥{formatCentToYuan(bill.cost_cent)}</p>
+                            <p className="text-[10px] text-gray-400 mt-0.5 italic">{category.label}</p>
+                          </div>
+                          <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                            <button 
+                              onClick={() => handleEditClick(bill)}
+                              className="p-2 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
+                              title="编辑"
+                            >
+                              <Pencil size={18} />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteBill(bill.id)}
+                              className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                              title="删除"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <div className="text-right">
-                        <p className="text-2xl font-black text-gray-900">￥{formatCentToYuan(bill.cost_cent)}</p>
-                        <p className="text-[10px] text-gray-400 mt-0.5 italic">{category.label}</p>
-                      </div>
-                      <button 
-                        onClick={() => handleDeleteBill(bill.id)}
-                        className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
-                        title="删除"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })
+                    );
+                  });
+                })()}
+              </div>
             )}
           </div>
         ) : (
@@ -410,9 +561,40 @@ const TripDetailPage = () => {
                   <h3 className="text-xl font-bold text-gray-900 mb-2">{splitResults.trip_name} 分账概览</h3>
                   <div className="flex justify-between items-center text-sm text-gray-600">
                     <span>总支出: <span className="font-bold text-gray-900">￥{splitResults.total_costs}</span></span>
-                    <span>人均支出: <span className="font-bold text-gray-900">￥{splitResults.avg_costs}</span></span>
                   </div>
                 </div>
+
+                {/* Bill Details Section */}
+                {splitResults.bill_details && splitResults.bill_details.length > 0 && (
+                  <div className="p-6 border-b border-gray-50">
+                    <h4 className="font-bold text-gray-900 flex items-center gap-2 mb-4">
+                      <Receipt size={18} className="text-blue-600" />
+                      账单分摊明细
+                    </h4>
+                    <div className="space-y-4">
+                      {splitResults.bill_details.map((bill, idx) => (
+                        <div key={idx} className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h5 className="font-bold text-gray-900">{bill.bill_name}</h5>
+                              <p className="text-[10px] text-gray-400 font-medium">付款人: {bill.payer_name}</p>
+                            </div>
+                            <span className="text-sm font-black text-gray-900">￥{bill.total_costs}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {bill.splits.map((split, sIdx) => (
+                              <div key={sIdx} className="bg-white px-3 py-1.5 rounded-xl border border-gray-100 flex items-center gap-2 shadow-sm">
+                                <span className="text-[10px] font-bold text-gray-600">{split.name}</span>
+                                <span className="text-[10px] font-black text-blue-600">￥{split.share}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="p-6 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between">
                   <h4 className="font-bold text-gray-900 flex items-center gap-2">
                     <CreditCard size={18} className="text-blue-600" />
@@ -422,15 +604,54 @@ const TripDetailPage = () => {
                 </div>
                 <div className="divide-y divide-gray-50">
                   {splitResults.details.length === 0 ? (
-                    <div className="p-6 text-center text-gray-400 font-medium">
-                      无需进行转账
+                    <div className="p-10 text-center flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center">
+                        <CheckCircle2 size={24} />
+                      </div>
+                      <p className="text-gray-400 font-bold">账目已清，无需转账</p>
                     </div>
                   ) : (
-                    splitResults.details.map((detail: string, i: number) => (
-                      <div key={i} className="p-6 flex items-center justify-between hover:bg-blue-50/20 transition-colors group">
-                        <p className="text-gray-700 font-medium">{detail}</p>
-                      </div>
-                    ))
+                    splitResults.details.map((detail: string, i: number) => {
+                      const match = detail.match(/(.+) 支付给 (.+): (.+) 元/);
+                      if (!match) return <div key={i} className="p-6 text-gray-700 font-medium">{detail}</div>;
+                      const [_, from, to, amount] = match;
+                      return (
+                        <div key={i} className="p-6 flex items-center justify-between hover:bg-blue-50/20 transition-all group">
+                          {/* From User */}
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center font-black text-sm border border-red-100 flex-shrink-0 shadow-sm">
+                              {from[0]}
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-sm font-black text-gray-900 truncate">{from}</span>
+                              <span className="text-[10px] text-red-400 font-bold uppercase tracking-tighter">付款人</span>
+                            </div>
+                          </div>
+                          
+                          {/* Flow Arrow & Amount */}
+                          <div className="flex flex-col items-center px-4 group-hover:scale-110 transition-transform duration-300">
+                            <div className="px-4 py-1.5 bg-blue-600 text-white rounded-xl text-sm font-black shadow-lg shadow-blue-100 mb-2">
+                              ￥{amount}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <div className="w-8 h-[2px] bg-gradient-to-r from-red-100 to-emerald-100 rounded-full"></div>
+                              <ArrowRight size={14} className="text-blue-500 animate-pulse" />
+                            </div>
+                          </div>
+
+                          {/* To User */}
+                          <div className="flex items-center gap-3 flex-1 justify-end min-w-0 text-right">
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-sm font-black text-gray-900 truncate">{to}</span>
+                              <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-tighter">收款人</span>
+                            </div>
+                            <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-sm border border-emerald-100 flex-shrink-0 shadow-sm">
+                              {to[0]}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
                   )}
                 </div>
               </div>
@@ -439,48 +660,12 @@ const TripDetailPage = () => {
         )}
       </div>
 
-      {creatorTrips.length > 0 && (
-        <div className="mt-10">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">该用户创建的其他旅行</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {creatorTrips.map((t) => (
-              <div 
-                key={t.id} 
-                className="bg-white p-5 rounded-2xl border border-gray-50 shadow-sm hover:border-blue-100 hover:shadow-md transition-all cursor-pointer"
-                onClick={() => navigate(`/trip/${t.id}`)}
-              >
-                <h4 className="font-bold text-gray-900 text-lg leading-tight">{t.name}</h4>
-                <p className="text-gray-500 text-sm mt-1 line-clamp-2">{t.description || '暂无描述'}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {memberTrips.length > 0 && (
-        <div className="mt-10">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">该用户参与的其他旅行</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {memberTrips.map((t) => (
-              <div 
-                key={t.id} 
-                className="bg-white p-5 rounded-2xl border border-gray-50 shadow-sm hover:border-blue-100 hover:shadow-md transition-all cursor-pointer"
-                onClick={() => navigate(`/trip/${t.id}`)}
-              >
-                <h4 className="font-bold text-gray-900 text-lg leading-tight">{t.name}</h4>
-                <p className="text-gray-500 text-sm mt-1 line-clamp-2">{t.description || '暂无描述'}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Modals */}
       {showAddBillModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="bg-white w-full max-w-lg rounded-[32px] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
             <div className="px-8 py-6 border-b flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 text-white">
-              <h3 className="text-xl font-bold">新增账单</h3>
+              <h3 className="text-xl font-bold">{editingBillId ? '编辑账单' : '新增账单'}</h3>
               <button onClick={() => setShowAddBillModal(false)} className="hover:rotate-90 transition-all duration-300 p-1">
                 <Plus size={28} className="rotate-45" />
               </button>
@@ -541,6 +726,92 @@ const TripDetailPage = () => {
               </div>
 
               <div>
+                <label className="block text-sm font-bold text-gray-700 mb-3">付款人</label>
+                <div className="flex flex-wrap gap-2">
+                  {trip?.members?.map((memberId) => {
+                    const isSelected = newBill.payer_id === memberId;
+                    return (
+                      <button
+                        key={memberId}
+                        type="button"
+                        onClick={() => setNewBill({ ...newBill, payer_id: memberId })}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all border-2 ${
+                          isSelected 
+                            ? 'border-blue-500 bg-blue-50 text-blue-600' 
+                            : 'border-gray-100 bg-gray-50 text-gray-400 hover:bg-gray-100'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
+                          isSelected ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}>
+                          {memberNames[memberId]?.[0] || 'U'}
+                        </div>
+                        {memberNames[memberId] || '未知用户'}
+                        {memberId === user.id && <span className="ml-1 opacity-50">(我)</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-bold text-gray-700">分摊成员 ({newBill.involved_members.length}/{trip?.members?.length || 0})</label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setNewBill({ ...newBill, involved_members: trip?.members || [] })}
+                      className="text-[10px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-wider"
+                    >
+                      全选
+                    </button>
+                    <span className="text-gray-200">|</span>
+                    <button
+                      type="button"
+                      onClick={() => setNewBill({ ...newBill, involved_members: [] })}
+                      className="text-[10px] font-black text-gray-400 hover:text-gray-500 uppercase tracking-wider"
+                    >
+                      全不选
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {trip?.members?.map((memberId) => {
+                    const isSelected = newBill.involved_members.includes(memberId);
+                    return (
+                      <button
+                        key={memberId}
+                        type="button"
+                        onClick={() => {
+                          const current = newBill.involved_members;
+                          if (isSelected) {
+                            setNewBill({ ...newBill, involved_members: current.filter(id => id !== memberId) });
+                          } else {
+                            setNewBill({ ...newBill, involved_members: [...current, memberId] });
+                          }
+                        }}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all border-2 ${
+                          isSelected 
+                            ? 'border-blue-500 bg-blue-50 text-blue-600' 
+                            : 'border-gray-100 bg-gray-50 text-gray-400 hover:bg-gray-100'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
+                          isSelected ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}>
+                          {memberNames[memberId]?.[0] || 'U'}
+                        </div>
+                        {memberNames[memberId] || '未知用户'}
+                      </button>
+                    );
+                  })}
+                  {(!trip?.members || trip.members.length === 0) && (
+                    <p className="text-sm text-red-500 font-medium">请先添加旅行成员</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">说明 (可选)</label>
                 <textarea
                   className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
@@ -563,7 +834,7 @@ const TripDetailPage = () => {
                   type="submit"
                   className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-bold shadow-xl shadow-blue-200 transition-all active:scale-95"
                 >
-                  确认记账
+                  {editingBillId ? '确认更新' : '确认记账'}
                 </button>
               </div>
             </form>

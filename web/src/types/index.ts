@@ -27,6 +27,8 @@ export interface Bill {
   trip_id: string;
   team_id: string;
   creator: string;
+  involved_members?: string[];
+  payer_id: string;
   create_time: string;
   update_time: string;
 }
@@ -42,4 +44,13 @@ export interface SplitResponseData {
   details: string[];
   total_costs: string;
   trip_name: string;
+  bill_details: {
+    bill_name: string;
+    payer_name: string;
+    total_costs: string;
+    splits: {
+      name: string;
+      share: string;
+    }[];
+  }[];
 }

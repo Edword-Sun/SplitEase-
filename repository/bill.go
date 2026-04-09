@@ -49,10 +49,9 @@ func (r *BillRepository) FindByID(id string) (error, *model.Bill) {
 }
 
 func (r *BillRepository) FindByTripID(tripID string) (error, []*model.Bill) {
-	query := r.DB.Model(&model.Bill{})
 	result := []*model.Bill{}
 
-	err := query.Where("trip_id = ?", tripID).Find(&result).Error
+	err := r.DB.Where("trip_id = ?", tripID).Order("create_time DESC").Find(&result).Error
 	if err != nil {
 		log.Println(err)
 		return errors.New("内部错误"), nil

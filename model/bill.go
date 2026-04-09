@@ -1,8 +1,9 @@
 package model
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Bill struct {
@@ -18,6 +19,10 @@ type Bill struct {
 
 	CreateTime time.Time `gorm:"type:timestamp with time zone;not null" json:"create_time"`
 	UpdateTime time.Time `gorm:"type:timestamp with time zone;not null" json:"update_time"`
+
+	// new
+	InvolvedMembers []string `gorm:"type:json; serializer:json" json:"involved_members"` // 参与者
+	PayerID         string   `gorm:"type:text" json:"payer_id"`                          // 付款人
 }
 
 func (b *Bill) TableName() string {

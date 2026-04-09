@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS `bill` (
     `update_time` DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+
+
 -- Team Table
 CREATE TABLE IF NOT EXISTS `team` (
     `id` VARCHAR(36) PRIMARY KEY,
@@ -46,3 +48,8 @@ CREATE TABLE IF NOT EXISTS `user` (
     `create_time` DATETIME NOT NULL,
     `update_time` DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 20260409
+-- Add involved_members to bill table
+ALTER TABLE `bill` ADD COLUMN `involved_members` JSON;
+ALTER TABLE `bill` ADD COLUMN `payer_id` VARCHAR(36);
