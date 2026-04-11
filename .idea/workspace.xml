@@ -5,8 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd8ba586-e53d-4502-8051-f2651cdd0019" name="更改" comment="优化代码">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/849a19ee-5fd2-4a8f-a06c-3caf741af5ef.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/849a19ee-5fd2-4a8f-a06c-3caf741af5ef.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/push_images.ps1" beforeDir="false" afterPath="$PROJECT_DIR$/push_images.ps1" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

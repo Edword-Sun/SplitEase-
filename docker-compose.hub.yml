@@ -1,0 +1,37 @@
+# 服务器上「只拉镜像、不 build」时使用（与仓库内 Dockerfile 无关）
+# 用法：与本文件同目录下需存在 .env（可从仓库根目录 .env.example 复制：cp .env.example .env 后编辑）
+#       docker compose -f docker-compose.hub.yml --env-file .env up -d
+# 各服务已设 pull_policy: always，每次 up 会先向仓库拉取当前 tag 的最新 manifest/层再启动（需能访问镜像仓库）。
+#
+# 镜像名与 push_images.ps1 默认 Registry 一致；若你改了 Docker Hub 用户名，请同步改 image 或设环境变量（需自行替换文件内镜像前缀）。
+#
+# 数据库在「宿主机」127.0.0.1:3306 时：容器里不能写 127.0.0.1（那会指容器自己）。
+# 默认 DB_HOST=host.docker.internal + extra_hosts 的 host-gateway，从容器访问宿主机上的 MySQL。
+# 若 MySQL 仅 bind-address=127.0.0.1，可能拒绝来自 Docker 网桥的连接，需改为 bind 0.0.0.0 或宿主机内网 IP，并注意防火墙。
+#
+# 前端默认映射 ${FRONTEND_PORT:-3000}:80（宿主机 3000 -> 容器内 Nginx 80），避免与宿主机已有 80 端口服务冲突；需要 80 时在 .env 设 FRONTEND_PORT=80 并释放宿主机 80。
+services:
+  backend:
+    image: ${BACKEND_IMAGE:-edwordddddddddd/split_ease-backend:latest}
+    pull_policy: always
+    container_name: split_ease_backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: ${DB_HOST:-host.docker.internal}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      DB_NAME: ${DB_NAME:-split_ease}
+      DB_CHARSET: ${DB_CHARSET:-utf8mb4}
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-edwordddddddddd/split_ease-frontend:latest}
+    pull_policy: always
+    container_name: split_ease_frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      - backend
