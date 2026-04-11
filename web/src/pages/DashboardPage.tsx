@@ -76,43 +76,37 @@ const DashboardPage = () => {
 
   return (
     <div className="space-y-8 pb-20">
-      {/* Welcome Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h2 className="text-3xl font-black text-gray-900 tracking-tight">你好, {user.name} 👋</h2>
-          <p className="text-gray-500 font-medium mt-1">
-            {(user as any).isGuest ? '您当前处于游客模式，数据将存储在公共服务器中' : '今天想记录哪次旅行的开支？'}
-          </p>
-        </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3.5 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 font-bold active:scale-95"
-        >
-          <Plus size={20} />
-          <span>创建新旅行</span>
-        </button>
-      </div>
-
-      {/* Search & Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+      {/* Header Section: Search & Actions */}
+      <div className="flex flex-col md:flex-row items-center gap-6 px-1">
+        <div className="relative flex-grow w-full">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input 
             type="text"
             placeholder="搜索旅行名称或描述..."
-            className="w-full pl-12 pr-4 py-4 bg-white border border-gray-100 rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
+            className="w-full h-[56px] pl-11 pr-4 bg-white border border-gray-100 rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="bg-blue-600 rounded-2xl p-4 flex items-center justify-between text-white shadow-lg shadow-blue-100">
-          <div>
-            <p className="text-blue-100 text-xs font-bold uppercase tracking-wider">进行中</p>
-            <p className="text-2xl font-black mt-1">{trips.length + memberTrips.length} <span className="text-sm font-normal text-blue-100">个旅行</span></p>
+        
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="bg-blue-600 rounded-2xl px-5 h-[56px] flex items-center gap-3 text-white shadow-lg shadow-blue-100">
+            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
+              <MapPin size={16} />
+            </div>
+            <div className="flex flex-col justify-center">
+              <p className="text-blue-100 text-[9px] font-bold uppercase tracking-wider leading-none">进行中</p>
+              <p className="text-lg font-black mt-1 leading-none">{memberTrips.length} <span className="text-[10px] font-normal text-blue-100">个旅行</span></p>
+            </div>
           </div>
-          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-            <MapPin size={24} />
-          </div>
+
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="h-[56px] flex items-center justify-center gap-2 bg-blue-600 text-white px-8 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 font-bold active:scale-95 whitespace-nowrap text-sm"
+          >
+            <Plus size={18} />
+            <span>新旅行</span>
+          </button>
         </div>
       </div>
 
@@ -125,16 +119,16 @@ const DashboardPage = () => {
         </div>
       ) : (
         <>
-          {/* 我创建的旅行 */}
-          <h3 className="text-xl font-bold text-gray-900 mt-8 mb-4">我创建的旅行 ({filteredCreatorTrips.length})</h3>
-          {filteredCreatorTrips.length === 0 ? (
+          {/* 我参与的旅行 */}
+          <h3 className="text-xl font-bold text-gray-900 mt-8 mb-4">我参与的旅行 ({filteredMemberTrips.length})</h3>
+          {filteredMemberTrips.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-[32px] border-2 border-dashed border-gray-100 shadow-sm">
               <div className="mx-auto w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-200 mb-6">
                 <Wallet size={40} />
               </div>
-              <h3 className="text-xl font-bold text-gray-900">暂无创建的旅行记录</h3>
+              <h3 className="text-xl font-bold text-gray-900">暂无参与的旅行记录</h3>
               <p className="text-gray-400 mt-2 max-w-xs mx-auto">
-                {searchTerm ? '没有找到匹配的旅行，换个关键词试试？' : '点击右上角“创建新旅行”开始记录您的第一笔开支。'}
+                {searchTerm ? '没有找到匹配的旅行，换个关键词试试？' : '加入一个旅行，开始记录您的开支。'}
               </p>
               {searchTerm && (
                 <button 
@@ -147,7 +141,7 @@ const DashboardPage = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredCreatorTrips.map((trip) => (
+              {filteredMemberTrips.map((trip) => (
                 <div
                   key={trip.id}
                   onClick={() => navigate(`/trip/${trip.id}`)}
@@ -197,16 +191,16 @@ const DashboardPage = () => {
             </div>
           )}
 
-          {/* 我参与的旅行 */}
-          <h3 className="text-xl font-bold text-gray-900 mt-8 mb-4">我参与的旅行 ({filteredMemberTrips.length})</h3>
-          {filteredMemberTrips.length === 0 ? (
+          {/* 我创建的旅行 */}
+          <h3 className="text-xl font-bold text-gray-900 mt-8 mb-4">我创建的旅行 ({filteredCreatorTrips.length})</h3>
+          {filteredCreatorTrips.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-[32px] border-2 border-dashed border-gray-100 shadow-sm">
               <div className="mx-auto w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-200 mb-6">
                 <Wallet size={40} />
               </div>
-              <h3 className="text-xl font-bold text-gray-900">暂无参与的旅行记录</h3>
+              <h3 className="text-xl font-bold text-gray-900">暂无创建的旅行记录</h3>
               <p className="text-gray-400 mt-2 max-w-xs mx-auto">
-                {searchTerm ? '没有找到匹配的旅行，换个关键词试试？' : '加入一个旅行，开始记录您的开支。'}
+                {searchTerm ? '没有找到匹配的旅行，换个关键词试试？' : '点击右上角“创建新旅行”开始记录您的第一笔开支。'}
               </p>
               {searchTerm && (
                 <button 
@@ -219,7 +213,7 @@ const DashboardPage = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredMemberTrips.map((trip) => (
+              {filteredCreatorTrips.map((trip) => (
                 <div
                   key={trip.id}
                   onClick={() => navigate(`/trip/${trip.id}`)}

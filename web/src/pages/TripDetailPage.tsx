@@ -300,10 +300,10 @@ const TripDetailPage = () => {
             返回列表
           </button>
           <h2 className="text-3xl font-extrabold text-gray-900 leading-tight">{trip.name}</h2>
-          <p className="text-gray-500 text-sm max-w-xl">{trip.description || '暂无描述'}</p>
-          <div className="flex flex-wrap gap-2 pt-1">
-            <div className="flex items-center gap-1 text-gray-400 text-xs mr-2">
-              <Users size={14} />
+          <p className="text-gray-500 text-xs max-w-xl">{trip.description || '暂无描述'}</p>
+          <div className="flex flex-wrap gap-2 pt-1 items-center">
+            <div className="flex items-center gap-1 text-gray-400 text-base mr-2">
+              <Users size={18} />
               <span>成员:</span>
             </div>
             {trip.members?.map((m, i) => {

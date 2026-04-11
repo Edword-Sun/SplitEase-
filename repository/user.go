@@ -101,7 +101,8 @@ func (r *UserRepository) UpdateByID(user *model.User) error {
 		return errors.New("nil pointer")
 	}
 	query := r.DB.Model(&model.User{}).Where("id = ?", user.ID)
-	err := query.Updates(user).Error
+	// 使用 Select("*") 确保指针类型的 nil 也会被更新为 NULL
+	err := query.Select("*").Updates(user).Error
 	if err != nil {
 		log.Println(err)
 		return errors.New("内部错误")

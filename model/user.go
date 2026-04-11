@@ -8,11 +8,11 @@ import (
 type User struct {
 	ID string `gorm:"primarykey type:text;default:gen_random_uuid()" json:"id"`
 
-	Name        string `gorm:"type:text" json:"name"`
-	AccountName string `gorm:"type:text" json:"account_name"`
-	Password    string `gorm:"type:text" json:"password"`
-	Email       string `gorm:"type:text" json:"email"`
-	PhoneNumber string `gorm:"type:text" json:"phone_number"`
+	Name        string  `gorm:"type:text" json:"name"`
+	AccountName string  `gorm:"type:text" json:"account_name"`
+	Password    string  `gorm:"type:text" json:"password"`
+	Email       *string `gorm:"type:text" json:"email"`
+	PhoneNumber *string `gorm:"type:text" json:"phone_number"`
 
 	CreateTime time.Time `gorm:"type:timestamp with time zone;not null" json:"create_time"`
 	UpdateTime time.Time `gorm:"type:timestamp with time zone;not null" json:"update_time"`

@@ -143,12 +143,13 @@ const LoginPage = () => {
             {!isLogin && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">邮箱</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    邮箱 <span className="text-gray-400 font-normal">(可选)</span>
+                  </label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
                     <input
                       type="email"
-                      required
                       className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
                       placeholder="请输入邮箱"
                       value={formData.email}
@@ -157,12 +158,13 @@ const LoginPage = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">手机号</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    手机号 <span className="text-gray-400 font-normal">(可选)</span>
+                  </label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-3 text-gray-400" size={18} />
                     <input
                       type="tel"
-                      required
                       className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
                       placeholder="请输入手机号"
                       value={formData.phone_number}

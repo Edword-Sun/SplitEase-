@@ -32,6 +32,7 @@ func (h *UserHandler) Init(engine *gin.Engine) {
 	{
 		//g.POST("/add", h.Add)
 		g.POST("/register", h.Register)
+		g.POST("/easy_register", h.Register)
 		g.POST("/login", h.Login)
 		g.POST("/find_by_id", h.FindByID)
 		g.POST("/list", h.List)
@@ -98,6 +99,56 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 	request.User.Password = hashedPassword
+
+	// 处理空字符串为 NULL
+	h.handleEmptyStrings(&request.User)
+
+	if err = h.repo.Create(&request.User); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "success",
+		"data":    request,
+	})
+}
+
+// easy-注册: 省略 1, email 2, 手机号
+func (h *UserHandler) EasyRegister(c *gin.Context) {
+	request := struct {
+		User     model.User `json:"user"`
+		IsSimple int        `json:"is_simple"` // 1: false, 2: true
+	}{}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	id := uuid.NewV4().String()
+	request.User.ID = id
+	//request.CreateTime = time.Now()
+	//request.UpdateTime = time.Now()
+
+	if request.IsSimple == 1 {
+		// 验证密码规范
+		if err := validatePassword(request.User.Password); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	// 密码哈希加密
+	hashedPassword, err := h.crypto.HashPassword(request.User.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "密码加密失败"})
+		return
+	}
+	request.User.Password = hashedPassword
+
+	// 处理空字符串为 NULL
+	h.handleEmptyStrings(&request.User)
 
 	if err = h.repo.Create(&request.User); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -204,6 +255,9 @@ func (h *UserHandler) UpdateByID(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "data is required"})
 	}
 
+	// 处理空字符串为 NULL
+	h.handleEmptyStrings(request.User)
+
 	err := h.repo.UpdateByID(request.User)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -211,6 +265,15 @@ func (h *UserHandler) UpdateByID(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": request.User})
+}
+
+func (h *UserHandler) handleEmptyStrings(user *model.User) {
+	if user.Email != nil && *user.Email == "" {
+		user.Email = nil
+	}
+	if user.PhoneNumber != nil && *user.PhoneNumber == "" {
+		user.PhoneNumber = nil
+	}
 }
 
 func (h *UserHandler) DeleteByID(c *gin.Context) {
