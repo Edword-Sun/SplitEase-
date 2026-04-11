@@ -5,14 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd8ba586-e53d-4502-8051-f2651cdd0019" name="更改" comment="优化代码">
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/849a19ee-5fd2-4a8f-a06c-3caf741af5ef.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/849a19ee-5fd2-4a8f-a06c-3caf741af5ef.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/mysql.sql" beforeDir="false" afterPath="$PROJECT_DIR$/config/mysql.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/bill.go" beforeDir="false" afterPath="$PROJECT_DIR$/model/bill.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/repository/bill.go" beforeDir="false" afterPath="$PROJECT_DIR$/repository/bill.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/router/bill.go" beforeDir="false" afterPath="$PROJECT_DIR$/router/bill.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/router/trip.go" beforeDir="false" afterPath="$PROJECT_DIR$/router/trip.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/src/pages/TripDetailPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/web/src/pages/TripDetailPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/src/types/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/web/src/types/index.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -133,11 +127,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Go 构建.go build split_ease/cmd" />
         <item itemvalue="Go 测试.split_ease/router 中的 TestUserRouter_All" />
         <item itemvalue="Go 测试.split_ease/router 中的 TestTripRouter_All" />
         <item itemvalue="Go 测试.split_ease/repository 中的 TestUserRepository_All" />
         <item itemvalue="Go 测试.split_ease/repository 中的 TestTripRepository_All" />
+        <item itemvalue="Go 构建.go build split_ease/cmd" />
       </list>
     </recent_temporary>
   </component>
