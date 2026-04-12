@@ -677,7 +677,7 @@ const TripDetailPage = () => {
                   <input
                     type="text"
                     required
-                    className="w-full px-5 py-3.5 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
+                    className="w-full px-5 py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
                     placeholder="如：成都老火锅"
                     value={newBill.name}
                     onChange={(e) => setNewBill({ ...newBill, name: e.target.value })}
@@ -691,7 +691,7 @@ const TripDetailPage = () => {
                       type="number"
                       step="0.01"
                       required
-                      className="w-full pl-10 pr-5 py-3.5 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-black text-xl"
+                      className="w-full pl-10 pr-5 py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-black text-xl text-gray-900"
                       placeholder="0.00"
                       value={newBill.cost_yuan}
                       onChange={(e) => setNewBill({ ...newBill, cost_yuan: e.target.value })}
@@ -814,7 +814,7 @@ const TripDetailPage = () => {
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">说明 (可选)</label>
                 <textarea
-                  className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
+                  className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
                   placeholder="添加备注，如：火锅、电影、景点门票..."
                   rows={2}
                   value={newBill.description}
@@ -857,7 +857,7 @@ const TripDetailPage = () => {
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    className="flex-1 px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold"
+                    className="flex-1 px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-base text-gray-900"
                     placeholder="输入用户名/邮箱/手机号"
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}

@@ -83,7 +83,7 @@ const DashboardPage = () => {
           <input 
             type="text"
             placeholder="搜索旅行名称或描述..."
-            className="w-full h-[56px] pl-11 pr-4 bg-white border border-gray-100 rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-sm"
+            className="w-full h-[56px] pl-11 pr-4 bg-white border border-gray-100 rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -282,7 +282,7 @@ const DashboardPage = () => {
                   type="text"
                   required
                   autoFocus
-                  className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
+                  className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
                   placeholder="例如：2026 成都美食之旅"
                   value={newTrip.name}
                   onChange={(e) => setNewTrip({ ...newTrip, name: e.target.value })}
@@ -291,7 +291,7 @@ const DashboardPage = () => {
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">简单描述</label>
                 <textarea
-                  className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
+                  className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
                   placeholder="这趟旅行有什么特别的计划吗？"
                   rows={3}
                   value={newTrip.description}

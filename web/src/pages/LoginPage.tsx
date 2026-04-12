@@ -86,7 +86,7 @@ const LoginPage = () => {
                   <input
                     type="text"
                     required
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-100 bg-white rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base text-gray-900"
                     placeholder="请输入昵称"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -102,7 +102,7 @@ const LoginPage = () => {
                 <input
                   type="text"
                   required
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-100 bg-white rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base text-gray-900"
                   placeholder="请输入账号"
                   value={formData.account_name}
                   onChange={(e) => setFormData({ ...formData, account_name: e.target.value })}
@@ -117,7 +117,7 @@ const LoginPage = () => {
                 <input
                   type="password"
                   required
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-100 bg-white rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base text-gray-900"
                   placeholder="请输入密码"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -150,7 +150,7 @@ const LoginPage = () => {
                     <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
                     <input
                       type="email"
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      className="block w-full pl-10 pr-3 py-2 border border-gray-100 bg-white rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base text-gray-900"
                       placeholder="请输入邮箱"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -165,7 +165,7 @@ const LoginPage = () => {
                     <Phone className="absolute left-3 top-3 text-gray-400" size={18} />
                     <input
                       type="tel"
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      className="block w-full pl-10 pr-3 py-2 border border-gray-100 bg-white rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base text-gray-900"
                       placeholder="请输入手机号"
                       value={formData.phone_number}
                       onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
