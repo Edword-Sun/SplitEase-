@@ -1,6 +1,5 @@
 # 服务器上「只拉镜像、不 build」时使用（与仓库内 Dockerfile 无关）
-# 用法：与本文件同目录下需存在 .env（可从仓库根目录 .env.example 复制：cp .env.example .env 后编辑）
-#       docker compose -f docker-compose.hub.yml --env-file .env up -d
+# 运行部署：使用 .\deploy.ps1 (Windows) 或执行 docker compose -f docker-compose.hub.yml --env-file .env up -d
 # 各服务已设 pull_policy: always，每次 up 会先向仓库拉取当前 tag 的最新 manifest/层再启动（需能访问镜像仓库）。
 #
 # 镜像名与 push_images.ps1 默认 Registry 一致；若你改了 Docker Hub 用户名，请同步改 image 或设环境变量（需自行替换文件内镜像前缀）。
@@ -15,6 +14,9 @@ services:
     image: ${BACKEND_IMAGE:-edwordddddddddd/split_ease-backend:latest}
     pull_policy: always
     container_name: split_ease_backend
+    labels:
+      com.splitease.service: "backend"
+      com.splitease.image: "${BACKEND_IMAGE:-edwordddddddddd/split_ease-backend:latest}"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -31,6 +33,9 @@ services:
     image: ${FRONTEND_IMAGE:-edwordddddddddd/split_ease-frontend:latest}
     pull_policy: always
     container_name: split_ease_frontend
+    labels:
+      com.splitease.service: "frontend"
+      com.splitease.image: "${FRONTEND_IMAGE:-edwordddddddddd/split_ease-frontend:latest}"
     ports:
       - "${FRONTEND_PORT:-3000}:80"
     depends_on:

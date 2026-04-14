@@ -6,6 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="dd8ba586-e53d-4502-8051-f2651cdd0019" name="更改" comment="代码优化">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.hub.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.hub.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/nginx.conf" beforeDir="false" afterPath="$PROJECT_DIR$/web/nginx.conf" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -149,7 +152,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="优化代码" />
     <MESSAGE value="docker-前后端分离" />
-    <option name="LAST_COMMIT_MESSAGE" value="docker-前后端分离" />
+    <MESSAGE value="代码优化" />
+    <option name="LAST_COMMIT_MESSAGE" value="代码优化" />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>

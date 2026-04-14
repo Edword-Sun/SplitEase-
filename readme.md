@@ -107,15 +107,27 @@ nano .env
 - `FRONTEND_PORT`: 前端访问端口，默认 `3000`。
 - `DB_PASSWORD`: 数据库密码。
 
-### 4. 启动服务
-使用 `docker-compose.yml` 构建并启动所有容器：
-```bash
-docker compose up -d --build
+### 4. 启动服务 (推荐)
+为了更直观地管理镜像拉取和运行状态，推荐使用内置的部署脚本：
+
+**Windows 环境 (PowerShell):**
+```powershell
+.\deploy.ps1
 ```
-该命令会自动：
-1. **后端构建**：基于 `golang:alpine` 编译二进制，并在 `scratch` 镜像中运行。
-2. **前端构建**：基于 `node` 编译静态资源，并由 `nginx:alpine` 托管。
-3. **网络配置**：前端 Nginx 会将 `/api/` 请求自动转发至后端容器。
+
+**Linux/macOS 环境 (Shell):**
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+这些脚本会自动拉取最新镜像，并**明确显示**正在拉取的镜像版本以及启动后的运行状态。
+
+### 5. 启动服务 (传统方式)
+如果您希望手动操作，也可以直接使用 `docker compose`：
+```bash
+docker compose -f docker-compose.hub.yml --env-file .env up -d
+```
 
 ### 5. 验证部署
 - 访问：`http://<服务器IP>:<FRONTEND_PORT>` (默认 3000)。
