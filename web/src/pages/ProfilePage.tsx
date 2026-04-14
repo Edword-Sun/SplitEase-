@@ -62,33 +62,33 @@ const ProfilePage = () => {
   if (!user) return null;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
-      <div className="flex items-center gap-4">
+    <div className="max-w-2xl mx-auto space-y-6 sm:space-y-8 pb-10">
+      <div className="flex items-center gap-3 sm:gap-4">
         <button 
           onClick={() => navigate(-1)}
-          className="p-2 hover:bg-white rounded-full transition-colors text-gray-400 hover:text-gray-600"
+          className="p-2 hover:bg-white rounded-full transition-colors text-gray-400 hover:text-gray-600 shrink-0"
         >
           <ChevronLeft size={24} />
         </button>
-        <h2 className="text-3xl font-black text-gray-900">个人设置</h2>
+        <h2 className="text-2xl sm:text-3xl font-black text-gray-900">个人设置</h2>
       </div>
 
-      <div className="bg-white rounded-[32px] border border-gray-50 shadow-sm overflow-hidden">
-        <div className="h-32 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
-        <div className="px-8 pb-8">
-          <div className="relative -mt-12 mb-8 flex items-end gap-6">
-            <div className="w-24 h-24 bg-white rounded-3xl p-1 shadow-lg">
-              <div className="w-full h-full bg-blue-50 rounded-2xl flex items-center justify-center text-blue-500">
-                <UserIcon size={48} />
+      <div className="bg-white rounded-[24px] sm:rounded-[32px] border border-gray-50 shadow-sm overflow-hidden">
+        <div className="h-24 sm:h-32 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+        <div className="px-5 sm:px-8 pb-8">
+          <div className="relative -mt-10 sm:-mt-12 mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-[20px] sm:rounded-3xl p-1 shadow-lg">
+              <div className="w-full h-full bg-blue-50 rounded-[18px] sm:rounded-2xl flex items-center justify-center text-blue-500">
+                <UserIcon size={40} className="sm:size-[48px]" />
               </div>
             </div>
-            <div className="pb-2">
-              <h3 className="text-2xl font-bold text-gray-900">{user.name}</h3>
-              <p className="text-gray-400 text-sm font-medium">账号: {user.account_name}</p>
+            <div className="pb-1 sm:pb-2">
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900">{user.name}</h3>
+              <p className="text-gray-400 text-xs sm:text-sm font-medium uppercase tracking-wider">@{user.account_name}</p>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
             {message.text && (
               <div className={`p-4 rounded-2xl border ${
                 message.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-red-50 border-red-100 text-red-600'
@@ -172,13 +172,13 @@ const ProfilePage = () => {
         </div>
       </div>
 
-      <div className="p-6 bg-amber-50 rounded-[32px] border border-amber-100 flex gap-4">
-        <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 shrink-0">
-          <Shield size={24} />
+      <div className="p-5 sm:p-6 bg-amber-50 rounded-[24px] sm:rounded-[32px] border border-amber-100 flex gap-3 sm:gap-4">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-xl sm:rounded-2xl flex items-center justify-center text-amber-600 shrink-0">
+          <Shield size={20} className="sm:size-6" />
         </div>
         <div>
-          <h4 className="font-bold text-amber-900">安全提示</h4>
-          <p className="text-sm text-amber-700 mt-1 leading-relaxed">
+          <h4 className="font-bold text-amber-900 text-sm sm:text-base">安全提示</h4>
+          <p className="text-xs sm:text-sm text-amber-700 mt-1 leading-relaxed">
             您的账户信息将被加密存储。如果需要修改登录密码或注销账户，请联系系统管理员或使用专用的安全管理工具。
           </p>
         </div>

@@ -30,16 +30,16 @@ const Layout = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans selection:bg-blue-100 selection:text-blue-900">
       <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-40 transition-all duration-300">
-        <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-10">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
+          <div className="flex items-center gap-4 sm:gap-10">
             <div 
               className="flex items-center gap-2 cursor-pointer group" 
               onClick={() => navigate('/')}
             >
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200 group-hover:scale-110 transition-all duration-300">
-                <span className="text-xl font-black italic">S</span>
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200 group-hover:scale-110 transition-all duration-300">
+                <span className="text-lg sm:text-xl font-black italic">S</span>
               </div>
-              <h1 className="text-2xl font-black text-gray-900 tracking-tighter group-hover:text-blue-600 transition-colors">
+              <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tighter group-hover:text-blue-600 transition-colors">
                 SplitEase
               </h1>
             </div>
@@ -92,12 +92,12 @@ const Layout = () => {
         </div>
       </header>
 
-      <main className="flex-1 max-w-5xl mx-auto px-6 py-10 w-full animate-in fade-in duration-500">
+      <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 w-full animate-in fade-in duration-500">
         <Outlet />
       </main>
 
-      <footer className="bg-white border-t border-gray-50 py-12">
-        <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+      <footer className="bg-white border-t border-gray-50 py-8 sm:py-12">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2 opacity-50">
             <div className="w-6 h-6 bg-gray-900 rounded-lg flex items-center justify-center text-white">
               <span className="text-xs font-black italic">S</span>

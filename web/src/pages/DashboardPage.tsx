@@ -77,32 +77,32 @@ const DashboardPage = () => {
   return (
     <div className="space-y-8 pb-20">
       {/* Header Section: Search & Actions */}
-      <div className="flex flex-col md:flex-row items-center gap-6 px-1">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 lg:gap-6 px-1">
         <div className="relative flex-grow w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input 
             type="text"
             placeholder="搜索旅行名称或描述..."
-            className="w-full h-[56px] pl-11 pr-4 bg-white border border-gray-100 rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
+            className="w-full h-[50px] sm:h-[56px] pl-11 pr-4 bg-white border border-gray-100 rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="bg-blue-600 rounded-2xl px-5 h-[56px] flex items-center gap-3 text-white shadow-lg shadow-blue-100">
-            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
-              <MapPin size={16} />
+        <div className="flex items-center gap-3 w-full lg:w-auto">
+          <div className="bg-blue-600 rounded-2xl px-4 sm:px-5 h-[50px] sm:h-[56px] flex items-center gap-3 text-white shadow-lg shadow-blue-100 flex-grow lg:flex-grow-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
+              <MapPin size={14} className="sm:size-4" />
             </div>
             <div className="flex flex-col justify-center">
-              <p className="text-blue-100 text-[9px] font-bold uppercase tracking-wider leading-none">进行中</p>
-              <p className="text-lg font-black mt-1 leading-none">{memberTrips.length} <span className="text-[10px] font-normal text-blue-100">个旅行</span></p>
+              <p className="text-blue-100 text-[8px] sm:text-[9px] font-bold uppercase tracking-wider leading-none">进行中</p>
+              <p className="text-base sm:text-lg font-black mt-1 leading-none">{memberTrips.length} <span className="text-[10px] font-normal text-blue-100">个旅行</span></p>
             </div>
           </div>
 
           <button
             onClick={() => setShowAddModal(true)}
-            className="h-[56px] flex items-center justify-center gap-2 bg-blue-600 text-white px-8 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 font-bold active:scale-95 whitespace-nowrap text-sm"
+            className="h-[50px] sm:h-[56px] flex items-center justify-center gap-2 bg-blue-600 text-white px-6 sm:px-8 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 font-bold active:scale-95 whitespace-nowrap text-sm flex-grow lg:flex-grow-0"
           >
             <Plus size={18} />
             <span>新旅行</span>
@@ -267,22 +267,22 @@ const DashboardPage = () => {
 
       {/* Create Trip Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-md rounded-[32px] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-            <div className="px-8 py-6 border-b flex items-center justify-between bg-blue-600 text-white">
-              <h3 className="text-xl font-bold">开启新旅程</h3>
-              <button onClick={() => setShowAddModal(false)} className="hover:rotate-90 transition-all duration-300">
-                <Plus size={28} className="rotate-45" />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] shadow-2xl overflow-hidden animate-in slide-in-from-bottom sm:zoom-in duration-300 max-h-[95vh] flex flex-col">
+            <div className="px-6 sm:px-8 py-5 sm:py-6 border-b flex items-center justify-between bg-blue-600 text-white shrink-0">
+              <h3 className="text-lg sm:text-xl font-bold">开启新旅程</h3>
+              <button onClick={() => setShowAddModal(false)} className="hover:rotate-90 transition-all duration-300 p-1">
+                <Plus size={24} className="rotate-45" />
               </button>
             </div>
-            <form onSubmit={handleAddTrip} className="p-8 space-y-6">
+            <form onSubmit={handleAddTrip} className="p-6 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto">
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">旅行名称</label>
                 <input
                   type="text"
                   required
                   autoFocus
-                  className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
+                  className="w-full px-4 sm:px-5 py-3.5 sm:py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
                   placeholder="例如：2026 成都美食之旅"
                   value={newTrip.name}
                   onChange={(e) => setNewTrip({ ...newTrip, name: e.target.value })}
@@ -291,24 +291,24 @@ const DashboardPage = () => {
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">简单描述</label>
                 <textarea
-                  className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
+                  className="w-full px-4 sm:px-5 py-3.5 sm:py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
                   placeholder="这趟旅行有什么特别的计划吗？"
                   rows={3}
                   value={newTrip.description}
                   onChange={(e) => setNewTrip({ ...newTrip, description: e.target.value })}
                 />
               </div>
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-3 sm:gap-4 pt-2 sm:pt-4 pb-4 sm:pb-0">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 px-6 py-4 border border-gray-100 text-gray-500 rounded-2xl hover:bg-gray-50 font-bold transition-all"
+                  className="flex-1 px-4 sm:px-6 py-3.5 sm:py-4 border border-gray-100 text-gray-500 rounded-2xl hover:bg-gray-50 font-bold transition-all text-sm sm:text-base"
                 >
                   算了吧
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-bold shadow-xl shadow-blue-100 transition-all active:scale-95"
+                  className="flex-1 px-4 sm:px-6 py-3.5 sm:py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-bold shadow-xl shadow-blue-100 transition-all active:scale-95 text-sm sm:text-base"
                 >
                   立即出发
                 </button>

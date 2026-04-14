@@ -62,19 +62,23 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-        <div className="text-center">
-          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-xl bg-blue-100 text-blue-600 mb-4">
-            <ShieldCheck size={28} />
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="flex justify-center mb-6 sm:mb-8">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-600 rounded-[20px] sm:rounded-[24px] flex items-center justify-center text-white shadow-2xl shadow-blue-200 rotate-3">
+            <span className="text-2xl sm:text-3xl font-black italic">S</span>
           </div>
-          <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-            {isLogin ? '欢迎回来' : '开启分账之旅'}
-          </h2>
-          <p className="mt-2 text-sm text-gray-500">
-            {isLogin ? '登录以管理您的分账记录' : '注册 SplitEase 账户'}
-          </p>
         </div>
+        <h2 className="text-center text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+          {isLogin ? '欢迎回来' : '开启分账之旅'}
+        </h2>
+        <p className="mt-2 text-center text-sm sm:text-base text-gray-500 font-medium">
+          {isLogin ? '登录以管理您的分账记录' : '注册 SplitEase 账户'}
+        </p>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="bg-white py-8 px-6 sm:px-10 shadow-2xl shadow-gray-200/50 rounded-[32px] border border-gray-100">
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
@@ -235,7 +239,8 @@ const LoginPage = () => {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default LoginPage;
