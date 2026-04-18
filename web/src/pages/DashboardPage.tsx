@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar, Users, ChevronRight, Wallet, MapPin, Search } from 'lucide-react';
+import { Plus, Calendar, Users, ChevronRight, Wallet, MapPin, Search, Trash2 } from 'lucide-react';
 import api from '../api/client';
 import { Trip, User } from '../types';
 import { formatDate } from '../utils/format';
@@ -26,6 +26,19 @@ const DashboardPage = () => {
       setTrips([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteTrip = async (e: React.MouseEvent, tripId: string, tripName: string) => {
+    e.stopPropagation(); // 阻止跳转到详情页
+    if (window.confirm(`确定要永久删除旅行“${tripName}”吗？\n该操作将同时抹除所有关联账单，且无法恢复。`)) {
+      try {
+        await api.post('/trip/delete_by_id', { id: tripId });
+        await fetchCreatorTrips(); // 刷新列表
+      } catch (err) {
+        console.error('Failed to delete trip:', err);
+        alert('删除失败，请稍后重试');
+      }
     }
   };
 
@@ -77,8 +90,8 @@ const DashboardPage = () => {
   return (
     <div className="space-y-8 pb-20">
       {/* Header Section: Search & Actions */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 lg:gap-6 px-1">
-        <div className="relative flex-grow w-full">
+      <div className="flex flex-col gap-6 px-1">
+        <div className="relative w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input 
             type="text"
@@ -89,8 +102,8 @@ const DashboardPage = () => {
           />
         </div>
         
-        <div className="flex items-center gap-3 w-full lg:w-auto">
-          <div className="bg-blue-600 rounded-2xl px-4 sm:px-5 h-[50px] sm:h-[56px] flex items-center gap-3 text-white shadow-lg shadow-blue-100 flex-grow lg:flex-grow-0">
+        <div className="flex flex-row items-center justify-between gap-4 w-full">
+          <div className="bg-blue-600 rounded-2xl px-4 sm:px-6 h-[50px] sm:h-[56px] flex items-center gap-3 text-white shadow-lg shadow-blue-100 flex-1">
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
               <MapPin size={14} className="sm:size-4" />
             </div>
@@ -102,7 +115,7 @@ const DashboardPage = () => {
 
           <button
             onClick={() => setShowAddModal(true)}
-            className="h-[50px] sm:h-[56px] flex items-center justify-center gap-2 bg-blue-600 text-white px-6 sm:px-8 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 font-bold active:scale-95 whitespace-nowrap text-sm flex-grow lg:flex-grow-0"
+            className="h-[50px] sm:h-[56px] flex items-center justify-center gap-2 bg-blue-600 text-white px-6 sm:px-10 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 font-bold active:scale-95 whitespace-nowrap text-sm flex-1"
           >
             <Plus size={18} />
             <span>新旅行</span>
@@ -170,20 +183,6 @@ const DashboardPage = () => {
                           <span className="text-[11px] font-bold uppercase tracking-tight">{trip.members?.length || 0} 成员</span>
                         </div>
                       </div>
-                      
-                      {/* Avatar stack mock */}
-                      <div className="flex -space-x-2">
-                        {trip.members?.slice(0, 3).map((_, i) => (
-                          <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[8px] font-bold text-gray-400">
-                            U{i+1}
-                          </div>
-                        ))}
-                        {(trip.members?.length || 0) > 3 && (
-                          <div className="w-6 h-6 rounded-full border-2 border-white bg-blue-50 flex items-center justify-center text-[8px] font-bold text-blue-400">
-                            +{(trip.members?.length || 0) - 3}
-                          </div>
-                        )}
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -219,6 +218,13 @@ const DashboardPage = () => {
                   onClick={() => navigate(`/trip/${trip.id}`)}
                   className="group bg-white p-7 rounded-[32px] border border-gray-50 shadow-sm hover:shadow-xl hover:border-blue-100 hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden"
                 >
+                  <button
+                    onClick={(e) => handleDeleteTrip(e, trip.id, trip.name)}
+                    className="absolute top-4 right-14 p-2 bg-red-50 text-red-500 rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-100 z-10"
+                    title="删除旅行"
+                  >
+                    <Trash2 size={18} />
+                  </button>
                   <div className="absolute top-0 right-0 p-6 text-gray-200 group-hover:text-blue-500 transition-colors">
                     <ChevronRight size={28} />
                   </div>
@@ -241,20 +247,6 @@ const DashboardPage = () => {
                           <Users size={14} className="text-gray-300" />
                           <span className="text-[11px] font-bold uppercase tracking-tight">{trip.members?.length || 0} 成员</span>
                         </div>
-                      </div>
-                      
-                      {/* Avatar stack mock */}
-                      <div className="flex -space-x-2">
-                        {trip.members?.slice(0, 3).map((_, i) => (
-                          <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[8px] font-bold text-gray-400">
-                            U{i+1}
-                          </div>
-                        ))}
-                        {(trip.members?.length || 0) > 3 && (
-                          <div className="w-6 h-6 rounded-full border-2 border-white bg-blue-50 flex items-center justify-center text-[8px] font-bold text-blue-400">
-                            +{(trip.members?.length || 0) - 3}
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>

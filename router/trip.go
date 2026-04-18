@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	uuid "github.com/satori/go.uuid"
 
@@ -149,6 +150,14 @@ func (h *TripHandler) DeleteByID(c *gin.Context) {
 		return
 	}
 
+	// 级联删除：先删除该旅行下的所有账单
+	if err := h.billRepo.DeleteByTripID(request.ID); err != nil {
+		log.Println("级联删除账单失败:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "级联删除账单失败"})
+		return
+	}
+
+	// 删除旅行
 	err := h.repo.DeleteByID(request.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -195,7 +204,13 @@ func (h *TripHandler) Split(c *gin.Context) {
 
 	curMembersID := curTrip.Members
 	curMembers := []*model.User{}
+	virtualMembers := []string{}
 	for _, id := range curMembersID {
+		if strings.Contains(id, "virtual") {
+			virtualMembers = append(virtualMembers, id)
+			log.Println("虚拟成员: ", id)
+			continue
+		}
 		var user *model.User
 		err, user = h.userRepo.FindByID(id)
 		if err != nil {
@@ -234,6 +249,10 @@ func (h *TripHandler) Split(c *gin.Context) {
 	for _, user := range curMembers {
 		balanceMap[user.ID] = 0
 		userNameMap[user.ID] = user.Name
+	}
+	for _, v := range virtualMembers {
+		balanceMap[v] = 0
+		userNameMap[v] = v
 	}
 
 	type BillSplitMemberDetail struct {
@@ -309,20 +328,26 @@ func (h *TripHandler) Split(c *gin.Context) {
 	}
 
 	// 2. 收集债务人和债权人
-	type userBalance struct {
-		user    *model.User
+	type memberBalance struct {
+		id      string
+		name    string
 		balance int64
 	}
-	debtors := []userBalance{}   // 欠钱的人 (负值)
-	creditors := []userBalance{} // 该收钱的人 (正值)
+	debtors := []memberBalance{}   // 欠钱的人 (负值)
+	creditors := []memberBalance{} // 该收钱的人 (正值)
 
-	// 按顺序遍历，保证稳定性
-	for _, user := range curMembers {
-		balance := balanceMap[user.ID]
+	// 按 Trip 成员顺序遍历，保证稳定性并涵盖虚拟成员
+	for _, mID := range curTrip.Members {
+		balance := balanceMap[mID]
+		name := userNameMap[mID]
+		if name == "" {
+			continue
+		}
+
 		if balance > 0 {
-			creditors = append(creditors, userBalance{user: user, balance: balance})
+			creditors = append(creditors, memberBalance{id: mID, name: name, balance: balance})
 		} else if balance < 0 {
-			debtors = append(debtors, userBalance{user: user, balance: -balance})
+			debtors = append(debtors, memberBalance{id: mID, name: name, balance: -balance})
 		}
 	}
 
@@ -341,9 +366,13 @@ func (h *TripHandler) Split(c *gin.Context) {
 
 		if amount > 0 {
 			// 格式化输出：A 支付给 B 多少钱
+			// 处理虚拟成员名称显示：去掉 virtual/ 前缀
+			displayNameFrom := strings.TrimPrefix(debtor.name, "virtual/")
+			displayNameTo := strings.TrimPrefix(creditor.name, "virtual/")
+
 			transaction := fmt.Sprintf("%s 支付给 %s: %.2f 元",
-				debtor.user.Name,
-				creditor.user.Name,
+				displayNameFrom,
+				displayNameTo,
 				float64(amount)/100.0)
 			transactions = append(transactions, transaction)
 		}

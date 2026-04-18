@@ -55,7 +55,12 @@ func TestBillRepository_All(t *testing.T) {
 	mock.ExpectExec("UPDATE `bill` SET").WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
-	// 5. Delete
+	// 5. DeleteByTripID
+	mock.ExpectBegin()
+	mock.ExpectExec("DELETE FROM `bill` WHERE trip_id = \\?").WithArgs(tripID).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	// 6. Delete
 	mock.ExpectBegin()
 	mock.ExpectExec("DELETE FROM `bill` WHERE id = \\?").WithArgs(bill.ID).WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
@@ -81,6 +86,11 @@ func TestBillRepository_All(t *testing.T) {
 	start = time.Now()
 	err = repo.UpdateByID(bill)
 	logRepoCall(t, "BillRepository.UpdateByID", start, err)
+	assert.NoError(t, err)
+
+	start = time.Now()
+	err = repo.DeleteByTripID(tripID)
+	logRepoCall(t, "BillRepository.DeleteByTripID", start, err)
 	assert.NoError(t, err)
 
 	start = time.Now()
@@ -169,6 +179,26 @@ func TestBillRepository_DeleteByID(t *testing.T) {
 	start := time.Now()
 	err := repo.DeleteByID(billID)
 	logRepoCall(t, "BillRepository.DeleteByID", start, err)
+	assert.NoError(t, err)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestBillRepository_DeleteByTripID(t *testing.T) {
+	db, mock, sqlDB := setupBillMockDB(t)
+	defer sqlDB.Close()
+
+	repo := &BillRepository{DB: db}
+	tripID := "test-trip-id"
+
+	mock.ExpectBegin()
+	mock.ExpectExec("DELETE FROM `bill` WHERE trip_id = \\?").
+		WithArgs(tripID).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	start := time.Now()
+	err := repo.DeleteByTripID(tripID)
+	logRepoCall(t, "BillRepository.DeleteByTripID", start, err)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }

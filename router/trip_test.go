@@ -88,6 +88,9 @@ func TestTripRouter_All(t *testing.T) {
 
 	// 5. Delete
 	mock.ExpectBegin()
+	mock.ExpectExec("DELETE FROM `bill` WHERE trip_id = \\?").WithArgs(tripID).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+	mock.ExpectBegin()
 	mock.ExpectExec("DELETE FROM `trip` WHERE id = \\?").WithArgs(tripID).WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
@@ -328,8 +331,18 @@ func TestTripRouter_DeleteByID(t *testing.T) {
 	tripID := "test-id"
 	body, _ := json.Marshal(map[string]string{"id": tripID})
 
+	// 1. Mock 级联删除账单
 	mock.ExpectBegin()
-	mock.ExpectExec("DELETE FROM `trip` WHERE id = \\?").WithArgs(tripID).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("DELETE FROM `bill` WHERE trip_id = \\?").
+		WithArgs(tripID).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	// 2. Mock 删除旅行
+	mock.ExpectBegin()
+	mock.ExpectExec("DELETE FROM `trip` WHERE id = \\?").
+		WithArgs(tripID).
+		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	req, _ := http.NewRequest("POST", "/trip/delete_by_id", bytes.NewBuffer(body))

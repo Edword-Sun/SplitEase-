@@ -73,9 +73,21 @@ func (r *BillRepository) UpdateByID(bill *model.Bill) error {
 	}
 	return nil
 }
+
 func (r *BillRepository) DeleteByID(id string) error {
 	query := r.DB.Model(&model.Bill{})
 	query = query.Where("id = ?", id)
+	err := query.Delete(&model.Bill{}).Error
+	if err != nil {
+		log.Println(err)
+		return errors.New("内部错误")
+	}
+	return nil
+}
+
+func (r *BillRepository) DeleteByTripID(tripID string) error {
+	query := r.DB.Model(&model.Bill{})
+	query = query.Where("trip_id = ?", tripID)
 	err := query.Delete(&model.Bill{}).Error
 	if err != nil {
 		log.Println(err)

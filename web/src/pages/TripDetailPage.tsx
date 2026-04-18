@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, Receipt, ArrowRightLeft, ChevronLeft, CreditCard, Users, Trash2, Search, Pencil, ArrowRight, CheckCircle2, Info, ArrowDown } from 'lucide-react';
+import { Plus, Receipt, ArrowRightLeft, ChevronLeft, CreditCard, Users, Trash2, Search, Pencil, ArrowRight, CheckCircle2, Info, ArrowDown, ChevronDown } from 'lucide-react';
 import api from '../api/client';
 import { Trip, Bill, SplitResult, User, SplitResponseData } from '../types';
 import { formatCentToYuan, formatYuanToCent, formatDate } from '../utils/format';
@@ -30,6 +30,7 @@ const TripDetailPage = () => {
   });
   const [editingBillId, setEditingBillId] = useState<string | null>(null);
   const [newMemberId, setNewMemberId] = useState('');
+  const [virtualMemberName, setVirtualMemberName] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchedUsers, setSearchedUsers] = useState<User[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -38,6 +39,15 @@ const TripDetailPage = () => {
   const [error, setError] = useState('');
   const [memberNames, setMemberNames] = useState<Record<string, string>>({});
   const [filterCategory, setFilterCategory] = useState<number | null>(null);
+  const [showPayerDropdown, setShowPayerDropdown] = useState(false);
+  const payerDropdownRef = useRef<HTMLDivElement>(null);
+
+  const getDisplayName = (memberId: string) => {
+    if (memberId === user.id) return '我';
+    if (memberNames[memberId]) return memberNames[memberId];
+    if (memberId.startsWith('virtual/')) return memberId.replace('virtual/', '');
+    return memberId.substring(0, 8) + '...';
+  };
 
   const fetchData = async () => {
     try {
@@ -50,6 +60,10 @@ const TripDetailPage = () => {
       const members = tripRes.data.data.members || [];
       const namesMap: Record<string, string> = {};
       for (const memberId of members) {
+        if (memberId.startsWith('virtual/')) {
+          namesMap[memberId] = memberId.replace('virtual/', '');
+          continue;
+        }
         try {
           const userRes = await api.post('/user/find_by_id', { id: memberId });
           namesMap[memberId] = userRes.data.data.name;
@@ -127,6 +141,16 @@ const TripDetailPage = () => {
   };
 
   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (payerDropdownRef.current && !payerDropdownRef.current.contains(event.target as Node)) {
+        setShowPayerDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
     fetchData();
     if (user.id) {
       fetchTripsByCreator();
@@ -154,6 +178,7 @@ const TripDetailPage = () => {
   const handleCloseAddMemberModal = () => {
     setShowAddMemberModal(false);
     setSearchKeyword('');
+    setVirtualMemberName('');
     setSearchedUsers([]);
     setCurrentPage(1);
     setNewMemberId('');
@@ -318,7 +343,7 @@ const TripDetailPage = () => {
                       : 'bg-white border border-gray-200 text-gray-600'
                   }`}
                 >
-                  <span>{isCurrentUser ? `${memberNames[user.id]} (我)` : (memberNames[m] || m.substring(0, 8) + '...')}</span>
+                  <span>{getDisplayName(m)}{isCurrentUser ? ' (我)' : ''}</span>
                   {!isCreator && ( // 创作者不能被删除
                     <button 
                       onClick={() => handleDeleteMember(m)}
@@ -486,8 +511,7 @@ const TripDetailPage = () => {
                             付款人: <span className="text-gray-600 font-medium">
                               {(() => {
                                 const actualPayerId = bill.payer_id || bill.creator;
-                                if (actualPayerId === user.id) return '(我)';
-                                return memberNames[actualPayerId] || actualPayerId?.substring(0, 8) || '未知';
+                                return getDisplayName(actualPayerId) + (actualPayerId === user.id ? ' (我)' : '');
                               })()}
                             </span>
                           </span>
@@ -500,16 +524,16 @@ const TripDetailPage = () => {
                                     <div 
                                       key={mId} 
                                       className="w-5 h-5 rounded-full border border-white bg-blue-50 flex items-center justify-center text-[8px] font-bold text-blue-500 shadow-sm"
-                                      title={memberNames[mId] || '未知用户'}
+                                      title={getDisplayName(mId)}
                                     >
-                                      {memberNames[mId]?.[0] || 'U'}
+                                      {getDisplayName(mId)[0] || 'U'}
                                     </div>
                                   ))}
                                 </div>
                                 <span className="text-[10px] text-gray-400 font-medium truncate">
                                   {bill.involved_members.length === (trip?.members?.length || 0) 
                                     ? '全员' 
-                                    : bill.involved_members.map(id => memberNames[id] || '未知').join(', ')}
+                                    : bill.involved_members.map(id => getDisplayName(id)).join(', ')}
                                 </span>
                                 {bill.involved_members.length > 0 && bill.involved_members.length < (trip?.members?.length || 0) && (
                                   <span className="ml-1 px-1.5 py-0.5 bg-blue-100 text-blue-600 text-[8px] font-black rounded-md uppercase">
@@ -575,7 +599,9 @@ const TripDetailPage = () => {
                   {splitResults.details.map((detail: string, idx: number) => {
                     const match = detail.match(/(.+) 支付给 (.+): (.+) 元/);
                     if (!match) return <div key={idx} className="p-6 text-gray-700 font-medium">{detail}</div>;
-                    const [_, from, to, amount] = match;
+                    const [_, rawFrom, rawTo, amount] = match;
+                    const from = rawFrom.replace(/^virtual\//, '');
+                    const to = rawTo.replace(/^virtual\//, '');
                     return (
                       <div key={idx} className="group bg-white border border-gray-100 p-4 sm:p-6 rounded-[24px] hover:shadow-xl hover:shadow-gray-100 transition-all duration-300">
                         <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
@@ -700,17 +726,39 @@ const TripDetailPage = () => {
               <div className="grid grid-cols-2 gap-4 sm:gap-6">
                 <div className="col-span-2 sm:col-span-1">
                   <label className="block text-sm font-bold text-gray-700 mb-2">谁付的钱？</label>
-                  <select
-                    className="w-full px-4 sm:px-5 py-3 sm:py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-gray-900 appearance-none text-base"
-                    value={newBill.payer_id}
-                    onChange={(e) => setNewBill({ ...newBill, payer_id: e.target.value })}
-                  >
-                    {trip?.members?.map(memberId => (
-                      <option key={memberId} value={memberId}>
-                        {memberNames[memberId] || memberId} {memberId === user.id ? '(我)' : ''}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative" ref={payerDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setShowPayerDropdown(!showPayerDropdown)}
+                      className="w-full flex items-center justify-between px-4 sm:px-5 py-3 sm:py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-gray-900 text-base shadow-sm hover:border-blue-200"
+                    >
+                      <span className="truncate">{getDisplayName(newBill.payer_id)} {newBill.payer_id === user.id ? '(我)' : ''}</span>
+                      <ChevronDown size={18} className={`text-gray-400 transition-transform duration-200 ${showPayerDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {showPayerDropdown && (
+                      <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl py-2 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+                        {trip?.members?.map(memberId => (
+                          <button
+                            key={memberId}
+                            type="button"
+                            onClick={() => {
+                              setNewBill({ ...newBill, payer_id: memberId });
+                              setShowPayerDropdown(false);
+                            }}
+                            className={`w-full text-left px-5 py-3 text-sm font-bold transition-colors hover:bg-blue-50 ${
+                              newBill.payer_id === memberId ? 'text-blue-600 bg-blue-50/50' : 'text-gray-700'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="truncate">{getDisplayName(memberId)} {memberId === user.id ? '(我)' : ''}</span>
+                              {newBill.payer_id === memberId && <CheckCircle2 size={16} className="text-blue-500" />}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="col-span-2 sm:col-span-1">
                   <label className="block text-sm font-bold text-gray-700 mb-2">说明 (可选)</label>
@@ -746,7 +794,7 @@ const TripDetailPage = () => {
                           : 'bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100'
                       }`}
                     >
-                      {memberNames[memberId] || memberId}
+                      {getDisplayName(memberId)}
                     </button>
                   ))}
                 </div>
@@ -791,9 +839,9 @@ const TripDetailPage = () => {
                 <Plus size={24} className="rotate-45" />
               </button>
             </div>
-            <form onSubmit={(e) => { e.preventDefault(); handleSearchClick(e); }} className="p-6 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto">
+            <form onSubmit={(e) => { e.preventDefault(); handleSearchClick(e); }} className="p-6 sm:p-8 space-y-6 sm:space-y-8 overflow-y-auto">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">搜索用户并添加</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">1. 搜索并添加站内用户</label>
                 <div className="flex gap-2 sm:gap-3">
                   <input
                     type="text"
@@ -812,54 +860,46 @@ const TripDetailPage = () => {
                   </button>
                 </div>
 
-                <div className="mt-6 min-h-[200px] flex flex-col">
+                <div className="mt-4 min-h-[120px] flex flex-col">
                   {searchLoading ? (
-                    <div className="flex-grow flex flex-col items-center justify-center py-10">
+                    <div className="flex-grow flex flex-col items-center justify-center py-6">
                       <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
                       <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">搜索中...</p>
                     </div>
                   ) : error ? (
-                    <div className="flex-grow flex flex-col items-center justify-center py-10 text-center">
+                    <div className="flex-grow flex flex-col items-center justify-center py-6 text-center">
                       <p className="text-red-400 text-sm font-bold">{error}</p>
-                      <button 
-                        type="button"
-                        onClick={() => searchUsers(searchKeyword, 1)}
-                        className="mt-2 text-blue-600 text-xs font-bold hover:underline"
-                      >
-                        点击重试
-                      </button>
                     </div>
                   ) : searchedUsers.length === 0 ? (
-                    <div className="flex-grow flex flex-col items-center justify-center py-10 text-center">
-                      <p className="text-gray-400 text-sm font-bold">
-                        {searchKeyword ? `未找到与 "${searchKeyword}" 相关的用户` : '暂无更多用户'}
+                    <div className="flex-grow flex flex-col items-center justify-center py-6 text-center border-2 border-dashed border-gray-50 rounded-2xl">
+                      <p className="text-gray-300 text-xs font-bold">
+                        {searchKeyword ? '未找到相关用户' : '输入关键字搜索好友'}
                       </p>
-                      <p className="text-[10px] text-gray-300 mt-1 uppercase tracking-tighter">Try a different keyword</p>
                     </div>
                   ) : (
                     <>
-                      <div className="border border-gray-100 rounded-2xl max-h-60 overflow-y-auto shadow-inner bg-gray-50/30">
+                      <div className="border border-gray-100 rounded-2xl max-h-40 overflow-y-auto shadow-inner bg-gray-50/30">
                         {searchedUsers.map((u) => {
                           const isAlreadyMember = trip?.members?.includes(u.id);
                           return (
                             <div 
                               key={u.id} 
-                              className="flex items-center justify-between p-4 border-b border-gray-50 last:border-b-0 hover:bg-white cursor-pointer transition-colors"
+                              className="flex items-center justify-between p-3 border-b border-gray-50 last:border-b-0 hover:bg-white cursor-pointer transition-colors"
                               onClick={() => !isAlreadyMember && handleAddMember(u.id)}
                             >
                               <div className="min-w-0">
-                                <p className="font-bold text-gray-800 truncate">{u.name}</p>
-                                <p className="text-xs text-gray-400 font-medium truncate">@{u.account_name}</p>
+                                <p className="font-bold text-gray-800 truncate text-sm">{u.name}</p>
+                                <p className="text-[10px] text-gray-400 font-medium truncate">@{u.account_name}</p>
                               </div>
                               {isAlreadyMember ? (
-                                <span className="text-[10px] text-gray-300 font-black bg-gray-100 px-3 py-1 rounded-full uppercase shrink-0">已经在旅行中</span>
+                                <span className="text-[10px] text-gray-300 font-black bg-gray-100 px-3 py-1 rounded-full uppercase shrink-0">已在列</span>
                               ) : (
                                 <button 
                                   type="button" 
-                                  className="px-4 py-1.5 bg-blue-500 text-white rounded-xl text-xs font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-100 active:scale-95 shrink-0"
+                                  className="px-3 py-1.5 bg-blue-500 text-white rounded-xl text-[10px] font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-100 active:scale-95 shrink-0"
                                   onClick={(e) => { e.stopPropagation(); handleAddMember(u.id); }}
                                 >
-                                  选择
+                                  添加
                                 </button>
                               )}
                             </div>
@@ -868,25 +908,25 @@ const TripDetailPage = () => {
                       </div>
 
                       {/* Pagination */}
-                      <div className="flex justify-between items-center mt-6 text-sm">
+                      <div className="flex justify-between items-center mt-4 text-[10px]">
                         <button
                           type="button"
                           onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                           disabled={currentPage === 1}
-                          className="px-3 sm:px-4 py-2 border border-gray-100 rounded-xl text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-xs sm:text-sm"
+                          className="px-2 py-1 border border-gray-100 rounded-lg text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-30 transition-colors"
                         >
-                          上一页
+                          上页
                         </button>
-                        <span className="text-gray-400 font-bold text-[10px] sm:text-[11px] uppercase tracking-wider">
-                          Page {currentPage} / {Math.ceil(totalSearchedUsers / 5)}
+                        <span className="text-gray-400 font-bold uppercase tracking-wider">
+                          {currentPage} / {Math.ceil(totalSearchedUsers / 5)}
                         </span>
                         <button
                           type="button"
                           onClick={() => handlePageChange(currentPage + 1)}
                           disabled={currentPage * 5 >= totalSearchedUsers}
-                          className="px-3 sm:px-4 py-2 border border-gray-100 rounded-xl text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-xs sm:text-sm"
+                          className="px-2 py-1 border border-gray-100 rounded-lg text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-30 transition-colors"
                         >
-                          下一页
+                          下页
                         </button>
                       </div>
                     </>
@@ -894,10 +934,33 @@ const TripDetailPage = () => {
                 </div>
               </div>
 
-              <div className="mt-2 p-4 sm:p-5 bg-blue-50/50 rounded-2xl border border-blue-100/50">
-                <p className="text-[10px] sm:text-[11px] text-blue-600 font-bold leading-relaxed flex gap-2">
-                  <span className="shrink-0">💡</span>
-                  <span>提示：点击搜索或按回车键查找用户。如果您知道对方的确切 ID，也可以直接在搜索框输入 ID 进行查找。</span>
+              <div className="border-t border-gray-100 pt-6">
+                <label className="block text-sm font-bold text-gray-700 mb-2">2. 添加虚拟/临时成员</label>
+                <div className="flex gap-2 sm:gap-3">
+                  <input
+                    type="text"
+                    className="flex-1 px-4 sm:px-5 py-3.5 sm:py-4 bg-emerald-50/30 border border-emerald-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all font-bold text-base text-gray-900"
+                    placeholder="输入姓名，如：小明"
+                    value={virtualMemberName}
+                    onChange={(e) => setVirtualMemberName(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!virtualMemberName.trim()) {
+                        alert('请输入成员姓名');
+                        return;
+                      }
+                      handleAddMember(`virtual/${virtualMemberName.trim()}`);
+                    }}
+                    className="px-4 sm:px-6 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all active:scale-95 flex items-center justify-center shadow-lg shadow-emerald-100 gap-2"
+                  >
+                    <Plus size={18} />
+                    创建
+                  </button>
+                </div>
+                <p className="mt-2 text-[10px] text-emerald-600 font-medium">
+                  虚拟成员仅存在于当前旅行，无需注册账号。
                 </p>
               </div>
 
@@ -907,7 +970,7 @@ const TripDetailPage = () => {
                   onClick={handleCloseAddMemberModal}
                   className="flex-1 px-6 py-3.5 sm:py-4 border border-gray-100 text-gray-500 rounded-2xl hover:bg-gray-50 font-bold transition-all active:scale-95 text-sm sm:text-base"
                 >
-                  关闭
+                  取消
                 </button>
               </div>
             </form>

@@ -96,21 +96,18 @@ const Layout = () => {
         <Outlet />
       </main>
 
-      <footer className="bg-white border-t border-gray-50 py-8 sm:py-12">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+      <footer className="bg-white border-t border-gray-50 py-8 sm:py-12 mt-auto">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-row items-center justify-center gap-6">
           <div className="flex items-center gap-2 opacity-50">
             <div className="w-6 h-6 bg-gray-900 rounded-lg flex items-center justify-center text-white">
               <span className="text-xs font-black italic">S</span>
             </div>
             <span className="text-sm font-black text-gray-900 tracking-tight">SplitEase</span>
           </div>
+          <div className="w-[1px] h-4 bg-gray-100 hidden sm:block"></div>
           <p className="text-gray-400 text-xs font-medium">
             © 2026 SplitEase - 为旅行而生的智能分账助手
           </p>
-          <div className="flex gap-6">
-            <a href="#" className="text-xs font-bold text-gray-300 hover:text-blue-500 transition-colors">隐私政策</a>
-            <a href="#" className="text-xs font-bold text-gray-300 hover:text-blue-500 transition-colors">使用条款</a>
-          </div>
         </div>
       </footer>
     </div>
