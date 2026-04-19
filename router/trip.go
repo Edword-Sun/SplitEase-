@@ -246,13 +246,20 @@ func (h *TripHandler) Split(c *gin.Context) {
 	// 1. 使用 Map 记录每个人的净差额 (balance = 已付 - 应付)
 	balanceMap := make(map[string]int64)
 	userNameMap := make(map[string]string)
+	paidMap := make(map[string]int64) // 总支出
+	owedMap := make(map[string]int64) // 总应付
+
 	for _, user := range curMembers {
 		balanceMap[user.ID] = 0
 		userNameMap[user.ID] = user.Name
+		paidMap[user.ID] = 0
+		owedMap[user.ID] = 0
 	}
 	for _, v := range virtualMembers {
 		balanceMap[v] = 0
 		userNameMap[v] = v
+		paidMap[v] = 0
+		owedMap[v] = 0
 	}
 
 	type BillSplitMemberDetail struct {
@@ -264,6 +271,12 @@ func (h *TripHandler) Split(c *gin.Context) {
 		PayerName  string                  `json:"payer_name"`
 		TotalCosts string                  `json:"total_costs"`
 		Splits     []BillSplitMemberDetail `json:"splits"`
+	}
+	type UserSummary struct {
+		Name         string `json:"name"`
+		TotalPaid    string `json:"total_paid"`    // 总支出
+		TotalShould  string `json:"total_should"`  // 总应付
+		FinalBalance string `json:"final_balance"` // 最终差额
 	}
 	billDetails := []BillSplitDetail{}
 
@@ -301,6 +314,7 @@ func (h *TripHandler) Split(c *gin.Context) {
 			// 如果是当前成员，记录分摊详情
 			if name, ok := userNameMap[pID]; ok {
 				balanceMap[pID] -= s
+				owedMap[pID] += s // 记录总应付
 				memberTotalShare += s
 				currentBillSplits = append(currentBillSplits, BillSplitMemberDetail{
 					Name:  name,
@@ -312,6 +326,7 @@ func (h *TripHandler) Split(c *gin.Context) {
 		// 如果付款人是当前成员，他获得的信用仅限于他为“当前组成员”垫付的部分
 		if _, ok := balanceMap[bill.PayerID]; ok {
 			balanceMap[bill.PayerID] += memberTotalShare
+			paidMap[bill.PayerID] += memberTotalShare // 记录他为团队垫付的总额
 		}
 
 		// 添加账单明细
@@ -324,6 +339,21 @@ func (h *TripHandler) Split(c *gin.Context) {
 			PayerName:  payerName,
 			TotalCosts: fmt.Sprintf("%.2f", float64(bill.CostCent)/100.0),
 			Splits:     currentBillSplits,
+		})
+	}
+
+	// 生成用户财务汇总
+	userSummaries := []UserSummary{}
+	for _, mID := range curTrip.Members {
+		name := userNameMap[mID]
+		if name == "" {
+			continue
+		}
+		userSummaries = append(userSummaries, UserSummary{
+			Name:         strings.TrimPrefix(name, "virtual/"),
+			TotalPaid:    fmt.Sprintf("%.2f", float64(paidMap[mID])/100.0),
+			TotalShould:  fmt.Sprintf("%.2f", float64(owedMap[mID])/100.0),
+			FinalBalance: fmt.Sprintf("%.2f", float64(balanceMap[mID])/100.0),
 		})
 	}
 
@@ -395,6 +425,7 @@ func (h *TripHandler) Split(c *gin.Context) {
 			"total_costs":  toYuan(tripAllCosts),
 			"details":      transactions,
 			"bill_details": billDetails,
+			"user_summary": userSummaries,
 		},
 	})
 }

@@ -32,7 +32,8 @@ func (h *UserHandler) Init(engine *gin.Engine) {
 	{
 		//g.POST("/add", h.Add)
 		g.POST("/register", h.Register)
-		g.POST("/easy_register", h.Register)
+		//g.POST("/easy_register", h.EasyRegister)
+
 		g.POST("/login", h.Login)
 		g.POST("/find_by_id", h.FindByID)
 		g.POST("/list", h.List)

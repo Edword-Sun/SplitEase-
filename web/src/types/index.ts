@@ -53,4 +53,10 @@ export interface SplitResponseData {
       share: string;
     }[];
   }[];
+  user_summary: {
+    name: string;
+    total_paid: string;
+    total_should: string;
+    final_balance: string;
+  }[];
 }
