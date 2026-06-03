@@ -1,3 +1,5 @@
+# [LEGACY] 此文件目前配合 deploy.ps1/sh 使用。
+# 如果你已经采用新的持续部署流程，该文件可能不再需要。
 # 服务器上「只拉镜像、不 build」时使用（与仓库内 Dockerfile 无关）
 # 运行部署：使用 .\deploy.ps1 (Windows) 或执行 docker compose -f docker-compose.hub.yml --env-file .env up -d
 # 各服务已设 pull_policy: always，每次 up 会先向仓库拉取当前 tag 的最新 manifest/层再启动（需能访问镜像仓库）。

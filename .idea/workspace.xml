@@ -5,9 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd8ba586-e53d-4502-8051-f2651cdd0019" name="更改" comment="代码优化">
-      <change afterPath="$PROJECT_DIR$/config/config_loc.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/config/config_cloud.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ask_to_systemprompt.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/deploy.ps1" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/deploy.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.hub.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.hub.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,7 +29,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="dev" />
+        <entry key="$PROJECT_DIR$" value="master" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -42,7 +46,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "DefaultGoTemplateProperty": "Go File",
-    "Go 构建.go build split_ease/cmd.executor": "Debug",
+    "Go 构建.go build split_ease/cmd.executor": "Run",
     "Go 测试.split_ease/repository 中的 TestBillRepository_All.executor": "Run",
     "Go 测试.split_ease/repository 中的 TestTripRepository_All.executor": "Run",
     "Go 测试.split_ease/repository 中的 TestUserRepository_All.executor": "Run",
@@ -136,10 +140,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Go 构建.go build split_ease/cmd" />
-        <item itemvalue="Go 测试.split_ease/router 中的 TestTripRouter_All (1)" />
-        <item itemvalue="Go 测试.split_ease/repository 中的 TestBillRepository_All" />
         <item itemvalue="Go 测试.split_ease/router 中的 TestUserRouter_All" />
+        <item itemvalue="Go 测试.split_ease/router 中的 TestTripRouter_All (1)" />
         <item itemvalue="Go 测试.split_ease/router 中的 TestTripRouter_All" />
+        <item itemvalue="Go 测试.split_ease/repository 中的 TestBillRepository_All" />
       </list>
     </recent_temporary>
   </component>

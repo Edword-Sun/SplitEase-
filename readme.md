@@ -43,7 +43,8 @@ split_ease/
 │   ├── src/            # 前端源代码
 │   └── nginx.conf      # 容器化 Nginx 配置
 ├── Dockerfile          # 后端 Docker 构建文件
-└── docker-compose.yml  # 全栈容器编排
+├── push_images.ps1     # [推荐] 自动化构建并推送镜像到仓库
+└── docker-compose.hub.yml # [LEGACY] 生产环境容器编排
 ```
 
 ## ⚙️ 快速开始
@@ -82,19 +83,39 @@ docker compose up -d
 ```
 访问：`http://localhost` (前端已通过 Nginx 反向代理至后端)
 
-## 🌐 云服务器部署 (Docker)
+## 🌐 镜像推送与云服务器部署
 
-本节介绍如何在 Linux 云服务器上快速部署 SplitEase 生产环境。
+本节介绍如何使用最新的自动化工具进行构建、推送及云服务器部署。
 
-### 1. 准备工作
-- 确保服务器已安装 [Docker](https://docs.docker.com/get-docker/) 和 [Docker Compose](https://docs.docker.com/compose/install/)。
-- 准备好一个可用的 MySQL 8.0 实例（可以是本地 Docker 运行或云数据库）。
+### 1. 镜像构建与推送 (推荐)
+在本地开发环境完成后，使用 `push_images.ps1` 一键构建并推送所有相关镜像：
 
-### 2. 获取代码
-```bash
-git clone <your-repo-url>
-cd split_ease
+```powershell
+# Windows (PowerShell)
+.\push_images.ps1 -Registry <your-registry-prefix> -Tag v1.0.0
 ```
+该脚本会自动：
+- 构建后端镜像 (`split_ease-backend`)
+- 构建前端镜像 (`split_ease-frontend`)
+- 为镜像打上指定标签（默认时间戳）及 `latest` 标签
+- 推送镜像到指定的 Docker 仓库
+
+### 2. 服务器部署
+在服务器上，您可以直接拉取推送好的镜像进行部署。
+
+#### 方式 A：直接拉取并运行 (推荐)
+```bash
+docker pull <registry>/split_ease-backend:latest
+docker pull <registry>/split_ease-frontend:latest
+# 结合您的容器管理工具或新的部署流程运行
+```
+
+#### 方式 B：使用 Docker Compose (Legacy)
+如果您仍希望使用内置的 Compose 脚本（已标记为 Legacy）：
+1. 复制 `.env.example` 并修改环境变量。
+2. 运行 `docker-compose.hub.yml`。
+
+**[注意]** `deploy.ps1` 和 `deploy.sh` 目前已标记为弃用，建议逐步过渡到更现代的 CI/CD 流程。
 
 ### 3. 配置环境变量
 复制 `.env.example` 并根据服务器实际情况修改：
@@ -107,29 +128,7 @@ nano .env
 - `FRONTEND_PORT`: 前端访问端口，默认 `3000`。
 - `DB_PASSWORD`: 数据库密码。
 
-### 4. 启动服务 (推荐)
-为了更直观地管理镜像拉取和运行状态，推荐使用内置的部署脚本：
-
-**Windows 环境 (PowerShell):**
-```powershell
-.\deploy.ps1
-```
-
-**Linux/macOS 环境 (Shell):**
-```bash
-chmod +x deploy.sh
-./deploy.sh
-```
-
-这些脚本会自动拉取最新镜像，并**明确显示**正在拉取的镜像版本以及启动后的运行状态。
-
-### 5. 启动服务 (传统方式)
-如果您希望手动操作，也可以直接使用 `docker compose`：
-```bash
-docker compose -f docker-compose.hub.yml --env-file .env up -d
-```
-
-### 5. 验证部署
+### 4. 验证部署
 - 访问：`http://<服务器IP>:<FRONTEND_PORT>` (默认 3000)。
 - 检查后端状态：`curl http://<服务器IP>:8080/health`。
 
