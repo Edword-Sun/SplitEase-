@@ -18,6 +18,9 @@ func main() {
 
 	r := gin.Default()
 
+	// CORS middleware
+	r.Use(router.Cors())
+
 	// Initialize crypto
 	hashCrypto := crypto.NewHashCrypto()
 
@@ -26,13 +29,14 @@ func main() {
 	billRepo := repository.NewBillRepository(config.DB)
 	teamRepo := repository.NewTeamRepository(config.DB)
 	tripRepo := repository.NewTripRepository(config.DB)
+	sessionRepo := repository.NewSessionRepository(config.DB)
 
 	// Initialize handlers and register routes
 
-	userHandler := router.NewUserHandler(userRepo, hashCrypto)
-	billHandler := router.NewBillHandler(billRepo)
-	teamHandler := router.NewTeamHandler(teamRepo)
-	tripHandler := router.NewTripHandler(tripRepo, userRepo, billRepo)
+	userHandler := router.NewUserHandler(userRepo, sessionRepo, hashCrypto)
+	billHandler := router.NewBillHandler(billRepo, sessionRepo)
+	teamHandler := router.NewTeamHandler(teamRepo, sessionRepo)
+	tripHandler := router.NewTripHandler(tripRepo, userRepo, billRepo, sessionRepo)
 
 	userHandler.Init(r)
 	billHandler.Init(r)

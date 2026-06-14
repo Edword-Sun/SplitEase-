@@ -16,31 +16,37 @@ import (
 )
 
 type UserHandler struct {
-	repo   *repository.UserRepository
-	crypto *crypto.HashCrypto
+	repo        *repository.UserRepository
+	sessionRepo *repository.SessionRepository
+	crypto      *crypto.HashCrypto
 }
 
-func NewUserHandler(repo *repository.UserRepository, crypto *crypto.HashCrypto) *UserHandler {
+func NewUserHandler(repo *repository.UserRepository, sessionRepo *repository.SessionRepository, crypto *crypto.HashCrypto) *UserHandler {
 	return &UserHandler{
-		repo:   repo,
-		crypto: crypto,
+		repo:        repo,
+		sessionRepo: sessionRepo,
+		crypto:      crypto,
 	}
 }
 
 func (h *UserHandler) Init(engine *gin.Engine) {
 	g := engine.Group("/user")
 	{
-		//g.POST("/add", h.Add)
+		// 公开路由
 		g.POST("/register", h.Register)
-		//g.POST("/easy_register", h.EasyRegister)
-
 		g.POST("/login", h.Login)
-		g.POST("/find_by_id", h.FindByID)
-		g.POST("/list", h.List)
 
-		g.POST("/update_by_id", h.UpdateByID)
-		g.POST("/delete_by_id", h.DeleteByID)
-
+		// 需登录路由
+		auth := g.Group("")
+		auth.Use(AuthRequired(h.sessionRepo))
+		{
+			auth.POST("/logout", h.Logout)
+			auth.GET("/me", h.Me)
+			auth.POST("/find_by_id", h.FindByID)
+			auth.POST("/list", h.List)
+			auth.POST("/update_by_id", h.UpdateByID)
+			auth.POST("/delete_by_id", h.DeleteByID)
+		}
 	}
 }
 
@@ -174,6 +180,8 @@ func (h *UserHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	userIP := c.ClientIP()
+	userAgent := c.Request.UserAgent()
 
 	// 1. 查找用户 (支持多种身份标识)
 	err, user := h.repo.FindByIdentity(request.Identity)
@@ -188,7 +196,82 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
+	// 3. 设置session
+	newSession := model.Session{
+		ID:          uuid.NewV4().String(),
+		UserID:      user.ID,
+		UserName:    user.Name,
+		Role:        "",  // user: role
+		Permissions: nil, // user: permissions
+		IPAddress:   userIP,
+		UserAgent:   userAgent,
+
+		// 在before create里设置
+		//ExpiresAt:
+		//CreatedTime:
+		//UpdatedTime:
+	}
+
+	if err = h.sessionRepo.Create(&newSession); err != nil {
+		log.Println("创建session错误: ", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	// 登录成功，清除敏感信息后返回
+	user.Password = ""
+	c.JSON(http.StatusOK, gin.H{
+		"message": "success",
+		"data": gin.H{
+			"user":      user,
+			"sessionID": newSession.ID,
+		},
+	})
+}
+
+func (h *UserHandler) Logout(c *gin.Context) {
+	// 1. 直接从 AuthRequired 中间件存入的上下文中获取当前 sessionID
+	// 这样既安全（只能登出自己），又不需要前端传参
+	sessionID, exists := c.Get("session_id") // 假设中间件里存了
+	if !exists {
+		// 如果中间件没存，就尝试从 Cookie/Header 拿
+		sessionID, _ = c.Cookie("session_id")
+	}
+
+	if sessionID == "" {
+		c.JSON(http.StatusOK, gin.H{"message": "already logged out"})
+		return
+	}
+
+	// 2. 从数据库删除
+	if err := h.sessionRepo.DeleteByID(sessionID.(string)); err != nil {
+		log.Println("删除session错误: ", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "登出失败"})
+		return
+	}
+
+	// 3. 清理客户端 Cookie (将 MaxAge 设为 -1 即可删除)
+	c.SetCookie("session_id", "", -1, "/", "", false, true)
+
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
+}
+
+// 获取当前登录用户信息
+func (h *UserHandler) Me(c *gin.Context) {
+	userID := c.GetString("user_id")
+	if userID == "" {
+		log.Println("未登录")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "未登录"})
+		return
+	}
+
+	err, user := h.repo.FindByID(userID)
+	if err != nil {
+		log.Println("用户不存在")
+		c.JSON(http.StatusNotFound, gin.H{"error": "用户不存在"})
+		return
+	}
+
 	user.Password = ""
 	c.JSON(http.StatusOK, gin.H{
 		"message": "success",

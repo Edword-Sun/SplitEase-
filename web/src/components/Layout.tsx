@@ -2,6 +2,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { LogOut, Home, User as UserIcon, Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { User } from '../types';
+import api from '../api/client';
 
 const Layout = () => {
   const navigate = useNavigate();
@@ -9,19 +10,31 @@ const Layout = () => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) {
-      navigate('/login');
-    } else {
-      setUser(JSON.parse(storedUser));
-    }
-  }, [navigate, location.pathname]);
+    const checkAuth = async () => {
+      try {
+        const response = await api.get('/user/me');
+        setUser(response.data.data);
+        localStorage.setItem('user', JSON.stringify(response.data.data));
+      } catch (err) {
+        // 401 错误会被 api/client.ts 的拦截器捕获并跳转
+        console.error('Auth check failed:', err);
+      }
+    };
 
-  const handleLogout = () => {
+    checkAuth();
+  }, [location.pathname]);
+
+  const handleLogout = async () => {
     if (window.confirm('确定要退出登录吗？')) {
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      navigate('/login');
+      try {
+        await api.post('/user/logout');
+      } catch (err) {
+        console.error('Logout error:', err);
+      } finally {
+        localStorage.removeItem('user');
+        localStorage.removeItem('sessionID');
+        navigate('/login');
+      }
     }
   };
 

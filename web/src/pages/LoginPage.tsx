@@ -31,10 +31,13 @@ const LoginPage = () => {
           password: formData.password,
         });
         
-        // Mock token since actual API might not return it based on README
-        const user = response.data.data || response.data;
+        // 登录成功，保存用户信息和 sessionID
+        const user = response.data.data.user || response.data.data;
+        const sessionID = response.data.data.sessionID;
         localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('token', 'mock_token');
+        if (sessionID) {
+          localStorage.setItem('sessionID', sessionID);
+        }
         navigate('/');
       } else {
         // According to router/user.go: POST /register
@@ -49,9 +52,13 @@ const LoginPage = () => {
           is_simple: formData.is_simple,
         };
         const response = await api.post('/user/register', registerData);
-        const user = response.data;
+        // 注册成功后
+        const user = response.data.data.user || response.data.data;
+        const sessionID = response.data.data.sessionID;
         localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('token', 'mock_token');
+        if (sessionID) {
+          localStorage.setItem('sessionID', sessionID);
+        }
         navigate('/');
       }
     } catch (err: any) {

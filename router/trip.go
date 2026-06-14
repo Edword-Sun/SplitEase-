@@ -15,24 +15,28 @@ import (
 )
 
 type TripHandler struct {
-	repo     *repository.TripRepository
-	userRepo *repository.UserRepository // for Split
-	billRepo *repository.BillRepository // for Split
+	repo        *repository.TripRepository
+	userRepo    *repository.UserRepository // for Split
+	billRepo    *repository.BillRepository // for Split
+	sessionRepo *repository.SessionRepository
 }
 
 func NewTripHandler(repo *repository.TripRepository,
 	userRepo *repository.UserRepository,
 	billRepo *repository.BillRepository,
+	sessionRepo *repository.SessionRepository,
 ) *TripHandler {
 	return &TripHandler{
-		repo:     repo,
-		userRepo: userRepo,
-		billRepo: billRepo,
+		repo:        repo,
+		userRepo:    userRepo,
+		billRepo:    billRepo,
+		sessionRepo: sessionRepo,
 	}
 }
 
 func (h *TripHandler) Init(engine *gin.Engine) {
 	g := engine.Group("/trip")
+	g.Use(AuthRequired(h.sessionRepo))
 	{
 		g.POST("/add", h.Add)
 		g.POST("/find_by_id", h.FindByID)

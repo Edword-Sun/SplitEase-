@@ -53,3 +53,21 @@ CREATE TABLE IF NOT EXISTS `user` (
 -- Add involved_members to bill table
 ALTER TABLE `bill` ADD COLUMN `involved_members` JSON;
 ALTER TABLE `bill` ADD COLUMN `payer_id` VARCHAR(36);
+
+
+-- 20260613
+-- 分账系统数据库，先加一张 session 表
+CREATE TABLE session (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id VARCHAR(36) NOT NULL,
+    user_name VARCHAR(50) NOT NULL,
+    role VARCHAR(50) NOT NULL,           -- 角色: admin/finance/viewer
+    permissions JSON,                     -- 权限列表，JSON格式
+    ip_address VARCHAR(45),
+    user_agent TEXT, -- 使用的浏览器
+    expires_at DATETIME NOT NULL, -- 过期时间
+    create_time DATETIME,
+    update_time DATETIME
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE INDEX idx_expires ON session(expires_at);
+CREATE INDEX idx_user_id ON session(user_id);

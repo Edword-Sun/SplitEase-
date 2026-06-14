@@ -12,17 +12,20 @@ import (
 )
 
 type TeamHandler struct {
-	repo *repository.TeamRepository
+	repo        *repository.TeamRepository
+	sessionRepo *repository.SessionRepository
 }
 
-func NewTeamHandler(repo *repository.TeamRepository) *TeamHandler {
+func NewTeamHandler(repo *repository.TeamRepository, sessionRepo *repository.SessionRepository) *TeamHandler {
 	return &TeamHandler{
-		repo: repo,
+		repo:        repo,
+		sessionRepo: sessionRepo,
 	}
 }
 
 func (h *TeamHandler) Init(engine *gin.Engine) {
 	g := engine.Group("/team")
+	g.Use(AuthRequired(h.sessionRepo))
 	{
 		g.POST("/add", h.Add)
 		g.POST("/find_by_id", h.FindByID)

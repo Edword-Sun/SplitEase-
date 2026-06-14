@@ -12,17 +12,20 @@ import (
 )
 
 type BillHandler struct {
-	repo *repository.BillRepository
+	repo        *repository.BillRepository
+	sessionRepo *repository.SessionRepository
 }
 
-func NewBillHandler(repo *repository.BillRepository) *BillHandler {
+func NewBillHandler(repo *repository.BillRepository, sessionRepo *repository.SessionRepository) *BillHandler {
 	return &BillHandler{
-		repo: repo,
+		repo:        repo,
+		sessionRepo: sessionRepo,
 	}
 }
 
 func (h *BillHandler) Init(engine *gin.Engine) {
 	g := engine.Group("/bill")
+	g.Use(AuthRequired(h.sessionRepo))
 	{
 		g.POST("/add", h.Add)
 		g.POST("/find_by_id", h.FindByID)
