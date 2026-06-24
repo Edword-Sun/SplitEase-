@@ -43,6 +43,10 @@ func (h *TeamHandler) Add(c *gin.Context) {
 		return
 	}
 
+	// 从 Context 中获取中间件设置的 user_id
+	userID := c.GetString("user_id")
+	request.Creator = userID
+
 	id := uuid.NewV4().String()
 	request.ID = id
 	//request.CreateTime = time.Now()

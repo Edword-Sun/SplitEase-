@@ -8,10 +8,11 @@ const api = axios.create({
   },
 });
 
-// 请求拦截器：自动注入 Authorization Header
+// 请求拦截器：自动注入 Authorization Header (携带 sessionID)
 api.interceptors.request.use((config) => {
   const sessionID = localStorage.getItem('sessionID');
   if (sessionID) {
+    // 对应后端中间件 c.GetHeader("Authorization")
     config.headers.Authorization = sessionID;
   }
   return config;

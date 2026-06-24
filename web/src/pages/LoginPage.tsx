@@ -32,8 +32,7 @@ const LoginPage = () => {
         });
         
         // 登录成功，保存用户信息和 sessionID
-        const user = response.data.data.user || response.data.data;
-        const sessionID = response.data.data.sessionID;
+        const { user, sessionID } = response.data.data;
         localStorage.setItem('user', JSON.stringify(user));
         if (sessionID) {
           localStorage.setItem('sessionID', sessionID);
