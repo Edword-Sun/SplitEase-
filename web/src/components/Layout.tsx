@@ -59,34 +59,34 @@ const Layout = () => {
             </nav>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button 
               onClick={() => navigate('/profile')}
-              className={`flex items-center gap-2 pl-2 pr-4 py-1.5 rounded-full border transition-all hover:shadow-md active:scale-95 ${
+              className={`flex items-center gap-2 pl-2 pr-3 sm:pr-4 py-1.5 rounded-full border transition-all hover:shadow-md active:scale-95 ${
                 location.pathname === '/profile'
                   ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-100'
                   : 'bg-white border-gray-100 text-gray-700 hover:border-blue-200'
               }`}
             >
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
+              <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shrink-0 ${
                 location.pathname === '/profile' ? 'bg-white/20' : 'bg-blue-50 text-blue-500'
               }`}>
-                <UserIcon size={14} />
+                <UserIcon size={12} className="sm:w-3.5 sm:h-3.5" />
               </div>
-              <div className="flex flex-col items-start leading-none">
-                <span className="text-xs font-black truncate max-w-[100px]">{user.name}</span>
-                {(user as any).isGuest && <span className="text-[8px] font-black uppercase tracking-tighter text-blue-400">游客模式</span>}
+              <div className="flex flex-col items-start leading-none min-w-0">
+                <span className="text-[10px] sm:text-xs font-black truncate max-w-[60px] sm:max-w-[100px]">我({user.name})</span>
+                {(user as any).isGuest && <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-tighter text-blue-400">游客</span>}
               </div>
             </button>
 
-            <div className="w-[1px] h-6 bg-gray-100 mx-1"></div>
+            <div className="w-[1px] h-5 sm:h-6 bg-gray-100 mx-0.5 sm:mx-1"></div>
 
             <button 
               onClick={handleLogout}
-              className="p-3 text-gray-300 hover:text-red-500 rounded-2xl hover:bg-red-50 transition-all duration-300 active:scale-90"
+              className="p-2 sm:p-3 text-gray-300 hover:text-red-500 rounded-xl sm:rounded-2xl hover:bg-red-50 transition-all duration-300 active:scale-90"
               title="退出登录"
             >
-              <LogOut size={20} />
+              <LogOut size={18} className="sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>

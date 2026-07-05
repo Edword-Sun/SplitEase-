@@ -102,22 +102,22 @@ const DashboardPage = () => {
           />
         </div>
         
-        <div className="flex flex-row items-center justify-between gap-4 w-full">
-          <div className="bg-blue-600 rounded-2xl px-4 sm:px-6 h-[50px] sm:h-[56px] flex items-center gap-3 text-white shadow-lg shadow-blue-100 flex-1">
+        <div className="flex flex-row items-center justify-between gap-3 sm:gap-4 w-full">
+          <div className="bg-blue-600 rounded-2xl px-3 sm:px-6 h-[50px] sm:h-[56px] flex items-center gap-2 sm:gap-3 text-white shadow-lg shadow-blue-100 flex-1 min-w-0">
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
               <MapPin size={14} className="sm:size-4" />
             </div>
-            <div className="flex flex-col justify-center">
-              <p className="text-blue-100 text-[8px] sm:text-[9px] font-bold uppercase tracking-wider leading-none">进行中</p>
-              <p className="text-base sm:text-lg font-black mt-1 leading-none">{memberTrips.length} <span className="text-[10px] font-normal text-blue-100">个旅行</span></p>
+            <div className="flex flex-col justify-center min-w-0">
+              <p className="text-blue-100 text-[7px] sm:text-[9px] font-bold uppercase tracking-wider leading-none">进行中</p>
+              <p className="text-sm sm:text-lg font-black mt-1 leading-none truncate">{memberTrips.length} <span className="text-[10px] font-normal text-blue-100">个旅行</span></p>
             </div>
           </div>
 
           <button
             onClick={() => setShowAddModal(true)}
-            className="h-[50px] sm:h-[56px] flex items-center justify-center gap-2 bg-blue-600 text-white px-6 sm:px-10 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 font-bold active:scale-95 whitespace-nowrap text-sm flex-1"
+            className="h-[50px] sm:h-[56px] flex items-center justify-center gap-2 bg-blue-600 text-white px-4 sm:px-10 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 font-bold active:scale-95 whitespace-nowrap text-xs sm:text-sm flex-1"
           >
-            <Plus size={18} />
+            <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
             <span>新旅行</span>
           </button>
         </div>
@@ -155,37 +155,37 @@ const DashboardPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredMemberTrips.map((trip) => (
-                <div
-                  key={trip.id}
-                  onClick={() => navigate(`/trip/${trip.id}`)}
-                  className="group bg-white p-7 rounded-[32px] border border-gray-50 shadow-sm hover:shadow-xl hover:border-blue-100 hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden"
-                >
-                  <div className="absolute top-0 right-0 p-6 text-gray-200 group-hover:text-blue-500 transition-colors">
-                    <ChevronRight size={28} />
-                  </div>
-                  
-                  <div className="flex flex-col h-full">
-                    <h3 className="text-xl font-black text-gray-900 mb-2 group-hover:text-blue-600 transition-colors pr-8">
-                      {trip.name}
-                    </h3>
-                    <p className="text-gray-400 text-sm line-clamp-2 mb-8 font-medium flex-grow">
-                      {trip.description || '这趟旅行还没有添加描述...'}
-                    </p>
+                  <div
+                    key={trip.id}
+                    onClick={() => navigate(`/trip/${trip.id}`)}
+                    className="group bg-white p-5 sm:p-7 rounded-[24px] sm:rounded-[32px] border border-gray-50 shadow-sm hover:shadow-xl hover:border-blue-100 hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 right-0 p-4 sm:p-6 text-gray-200 group-hover:text-blue-500 transition-colors">
+                      <ChevronRight size={24} className="sm:w-7 sm:h-7" />
+                    </div>
                     
-                    <div className="flex items-center justify-between pt-6 border-t border-gray-50">
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5 text-gray-400">
-                          <Calendar size={14} className="text-gray-300" />
-                          <span className="text-[11px] font-bold uppercase tracking-tight">{formatDate(trip.create_time).split(' ')[0]}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-gray-400">
-                          <Users size={14} className="text-gray-300" />
-                          <span className="text-[11px] font-bold uppercase tracking-tight">{trip.members?.length || 0} 成员</span>
+                    <div className="flex flex-col h-full">
+                      <h3 className="text-lg sm:text-xl font-black text-gray-900 mb-1 sm:mb-2 group-hover:text-blue-600 transition-colors pr-8 truncate">
+                        {trip.name}
+                      </h3>
+                      <p className="text-gray-400 text-xs sm:text-sm line-clamp-2 mb-6 sm:mb-8 font-medium flex-grow">
+                        {trip.description || '这趟旅行还没有添加描述...'}
+                      </p>
+                      
+                      <div className="flex items-center justify-between pt-4 sm:pt-6 border-t border-gray-50">
+                        <div className="flex items-center gap-3 sm:gap-4">
+                          <div className="flex items-center gap-1.5 text-gray-400">
+                            <Calendar size={12} className="text-gray-300 sm:w-3.5 sm:h-3.5" />
+                            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-tight">{formatDate(trip.create_time).split(' ')[0]}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-gray-400">
+                            <Users size={12} className="text-gray-300 sm:w-3.5 sm:h-3.5" />
+                            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-tight">{trip.members?.length || 0} 成员</span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
               ))}
             </div>
           )}
@@ -216,36 +216,36 @@ const DashboardPage = () => {
                 <div
                   key={trip.id}
                   onClick={() => navigate(`/trip/${trip.id}`)}
-                  className="group bg-white p-7 rounded-[32px] border border-gray-50 shadow-sm hover:shadow-xl hover:border-blue-100 hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden"
+                  className="group bg-white p-5 sm:p-7 rounded-[24px] sm:rounded-[32px] border border-gray-50 shadow-sm hover:shadow-xl hover:border-blue-100 hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden"
                 >
                   <button
                     onClick={(e) => handleDeleteTrip(e, trip.id, trip.name)}
-                    className="absolute top-4 right-14 p-2 bg-red-50 text-red-500 rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-100 z-10"
+                    className="absolute top-3 sm:top-4 right-10 sm:right-14 p-1.5 sm:p-2 bg-red-50 text-red-500 rounded-lg sm:rounded-xl sm:opacity-0 sm:group-hover:opacity-100 transition-all hover:bg-red-100 z-10"
                     title="删除旅行"
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                   </button>
-                  <div className="absolute top-0 right-0 p-6 text-gray-200 group-hover:text-blue-500 transition-colors">
-                    <ChevronRight size={28} />
+                  <div className="absolute top-0 right-0 p-4 sm:p-6 text-gray-200 group-hover:text-blue-500 transition-colors">
+                    <ChevronRight size={24} className="sm:w-7 sm:h-7" />
                   </div>
                   
                   <div className="flex flex-col h-full">
-                    <h3 className="text-xl font-black text-gray-900 mb-2 group-hover:text-blue-600 transition-colors pr-8">
+                    <h3 className="text-lg sm:text-xl font-black text-gray-900 mb-1 sm:mb-2 group-hover:text-blue-600 transition-colors pr-10 sm:pr-8 truncate">
                       {trip.name}
                     </h3>
-                    <p className="text-gray-400 text-sm line-clamp-2 mb-8 font-medium flex-grow">
+                    <p className="text-gray-400 text-xs sm:text-sm line-clamp-2 mb-6 sm:mb-8 font-medium flex-grow">
                       {trip.description || '这趟旅行还没有添加描述...'}
                     </p>
                     
-                    <div className="flex items-center justify-between pt-6 border-t border-gray-50">
-                      <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-between pt-4 sm:pt-6 border-t border-gray-50">
+                      <div className="flex items-center gap-3 sm:gap-4">
                         <div className="flex items-center gap-1.5 text-gray-400">
-                          <Calendar size={14} className="text-gray-300" />
-                          <span className="text-[11px] font-bold uppercase tracking-tight">{formatDate(trip.create_time).split(' ')[0]}</span>
+                          <Calendar size={12} className="text-gray-300 sm:w-3.5 sm:h-3.5" />
+                          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-tight">{formatDate(trip.create_time).split(' ')[0]}</span>
                         </div>
                         <div className="flex items-center gap-1.5 text-gray-400">
-                          <Users size={14} className="text-gray-300" />
-                          <span className="text-[11px] font-bold uppercase tracking-tight">{trip.members?.length || 0} 成员</span>
+                          <Users size={12} className="text-gray-300 sm:w-3.5 sm:h-3.5" />
+                          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-tight">{trip.members?.length || 0} 成员</span>
                         </div>
                       </div>
                     </div>

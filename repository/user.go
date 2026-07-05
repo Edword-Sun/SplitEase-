@@ -35,6 +35,50 @@ func (r *UserRepository) Create(user *model.User) error {
 	return nil
 }
 
+func (r *UserRepository) Find(user *model.User) (error, *model.User) {
+	if user == nil {
+		log.Println("user nil pointer")
+		return errors.New("nil pointer"), nil
+	}
+	query := r.DB.Model(&model.User{})
+	result := model.User{}
+
+	// 1, 查询条件设定
+	if len(user.ID) > 0 {
+		query = query.Where("id = ?", user.ID)
+	}
+	if len(user.Name) > 0 {
+		query = query.Where("name = ?", user.Name)
+	}
+	if len(user.AccountName) > 0 {
+		query = query.Where("account_name = ?", user.AccountName)
+	}
+	if len(user.Password) > 0 {
+		query = query.Where("password = ?", user.Password)
+	}
+	if user.Email != nil {
+		if len(*user.Email) > 0 {
+			query = query.Where("email = ?", user.Email)
+		}
+	}
+	if user.PhoneNumber != nil {
+		if len(*user.PhoneNumber) > 0 {
+			query = query.Where("phone_number = ?", user.PhoneNumber)
+		}
+	}
+
+	// 2, 查询
+	err := query.First(&result).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("数据不存在"), nil
+		}
+		log.Println(err)
+		return errors.New("内部错误"), nil
+	}
+	return nil, &result
+}
+
 func (r *UserRepository) FindByID(id string) (error, *model.User) {
 	query := r.DB.Model(&model.User{})
 	result := model.User{}

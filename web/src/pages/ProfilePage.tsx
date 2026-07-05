@@ -44,7 +44,7 @@ const ProfilePage = () => {
 
     try {
       const response = await api.post('/user/update_by_id', {
-        ...user,
+        id: user.id,
         ...formData
       });
       
@@ -131,7 +131,6 @@ const ProfilePage = () => {
                   <Mail className="absolute left-4 top-3.5 text-gray-300" size={18} />
                   <input
                     type="email"
-                    required
                     className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -145,7 +144,6 @@ const ProfilePage = () => {
                   <Phone className="absolute left-4 top-3.5 text-gray-300" size={18} />
                   <input
                     type="tel"
-                    required
                     className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
                     value={formData.phone_number}
                     onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
@@ -172,17 +170,6 @@ const ProfilePage = () => {
         </div>
       </div>
 
-      <div className="p-5 sm:p-6 bg-amber-50 rounded-[24px] sm:rounded-[32px] border border-amber-100 flex gap-3 sm:gap-4">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-xl sm:rounded-2xl flex items-center justify-center text-amber-600 shrink-0">
-          <Shield size={20} className="sm:size-6" />
-        </div>
-        <div>
-          <h4 className="font-bold text-amber-900 text-sm sm:text-base">安全提示</h4>
-          <p className="text-xs sm:text-sm text-amber-700 mt-1 leading-relaxed">
-            您的账户信息将被加密存储。如果需要修改登录密码或注销账户，请联系系统管理员或使用专用的安全管理工具。
-          </p>
-        </div>
-      </div>
     </div>
   );
 };

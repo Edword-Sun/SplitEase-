@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"time"
 	"unicode"
 
 	"github.com/gin-gonic/gin"
@@ -33,6 +34,7 @@ func (h *UserHandler) Init(engine *gin.Engine) {
 		//g.POST("/add", h.Add)
 		g.POST("/register", h.Register)
 		//g.POST("/easy_register", h.EasyRegister)
+		g.POST("/reset_pwd", h.ResetPWD)
 
 		g.POST("/login", h.Login)
 		g.POST("/find_by_id", h.FindByID)
@@ -115,52 +117,52 @@ func (h *UserHandler) Register(c *gin.Context) {
 	})
 }
 
-// easy-注册: 省略 1, email 2, 手机号
-func (h *UserHandler) EasyRegister(c *gin.Context) {
-	request := struct {
-		User     model.User `json:"user"`
-		IsSimple int        `json:"is_simple"` // 1: false, 2: true
-	}{}
-	if err := c.ShouldBindJSON(&request); err != nil {
-		log.Println(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	id := uuid.NewV4().String()
-	request.User.ID = id
-	//request.CreateTime = time.Now()
-	//request.UpdateTime = time.Now()
-
-	if request.IsSimple == 1 {
-		// 验证密码规范
-		if err := validatePassword(request.User.Password); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-	}
-
-	// 密码哈希加密
-	hashedPassword, err := h.crypto.HashPassword(request.User.Password)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "密码加密失败"})
-		return
-	}
-	request.User.Password = hashedPassword
-
-	// 处理空字符串为 NULL
-	h.handleEmptyStrings(&request.User)
-
-	if err = h.repo.Create(&request.User); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "success",
-		"data":    request,
-	})
-}
+//// easy-注册: 省略 1, email 2, 手机号
+//func (h *UserHandler) EasyRegister(c *gin.Context) {
+//	request := struct {
+//		User     model.User `json:"user"`
+//		IsSimple int        `json:"is_simple"` // 1: false, 2: true
+//	}{}
+//	if err := c.ShouldBindJSON(&request); err != nil {
+//		log.Println(err)
+//		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+//		return
+//	}
+//
+//	id := uuid.NewV4().String()
+//	request.User.ID = id
+//	//request.CreateTime = time.Now()
+//	//request.UpdateTime = time.Now()
+//
+//	if request.IsSimple == 1 {
+//		// 验证密码规范
+//		if err := validatePassword(request.User.Password); err != nil {
+//			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+//			return
+//		}
+//	}
+//
+//	// 密码哈希加密
+//	hashedPassword, err := h.crypto.HashPassword(request.User.Password)
+//	if err != nil {
+//		c.JSON(http.StatusInternalServerError, gin.H{"error": "密码加密失败"})
+//		return
+//	}
+//	request.User.Password = hashedPassword
+//
+//	// 处理空字符串为 NULL
+//	h.handleEmptyStrings(&request.User)
+//
+//	if err = h.repo.Create(&request.User); err != nil {
+//		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+//		return
+//	}
+//
+//	c.JSON(http.StatusOK, gin.H{
+//		"message": "success",
+//		"data":    request,
+//	})
+//}
 
 // 登入
 func (h *UserHandler) Login(c *gin.Context) {
@@ -243,32 +245,67 @@ func (h *UserHandler) List(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"code": 0, "data": res, "total": tol})
 }
 
-func (h *UserHandler) UpdateByID(c *gin.Context) {
-	var request = struct {
-		User *model.User `json:"user"`
-	}{}
+type UpdateUserReq struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number"`
+}
 
-	if err := c.ShouldBindJSON(&request.User); err != nil {
+func (h *UserHandler) UpdateByID(c *gin.Context) {
+	var request = &UpdateUserReq{}
+	if err := c.ShouldBindJSON(&request); err != nil {
 		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
-	} else if request.User == nil {
+	} else if request == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "data is required"})
 	}
 
+	newUser := &model.User{
+		ID:          request.ID,
+		Name:        request.Name,
+		Email:       &request.Email,
+		PhoneNumber: &request.PhoneNumber,
+	}
 	// 处理空字符串为 NULL
-	h.handleEmptyStrings(request.User)
+	h.handleEmptyStrings(newUser)
 
-	err := h.repo.UpdateByID(request.User)
+	// 获取数据
+	err, getUser := h.repo.FindByID(request.ID)
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "找不到传入id的用户"})
+		return
+	}
+
+	// 更新数据：name, email, phone_number
+	if len(newUser.Name) > 0 {
+		getUser.Name = newUser.Name
+	}
+	if len(*newUser.Email) > 0 {
+		getUser.Email = newUser.Email
+	}
+	if len(*newUser.PhoneNumber) > 0 {
+		getUser.PhoneNumber = newUser.PhoneNumber
+	}
+	getUser.UpdateTime = time.Now()
+
+	// 更新数据
+	err = h.repo.UpdateByID(getUser)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "success", "data": request.User})
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": getUser})
 }
 
 func (h *UserHandler) handleEmptyStrings(user *model.User) {
+	if user == nil {
+		log.Println("handleEmptyStrings: user 是 null")
+		return
+	}
 	if user.Email != nil && *user.Email == "" {
 		user.Email = nil
 	}
@@ -290,6 +327,47 @@ func (h *UserHandler) DeleteByID(c *gin.Context) {
 
 	err := h.repo.DeleteByID(request.ID)
 	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
+}
+
+type ResetPWDReq struct {
+	AccountName string `json:"account_name"`
+	Password    string `json:"password"`
+}
+
+func (h *UserHandler) ResetPWD(c *gin.Context) {
+	request := ResetPWDReq{}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 1, 找到用户，条件： account_name
+	err, existUser := h.repo.Find(&model.User{AccountName: request.AccountName})
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 2, 更改密码
+	// 密码哈希加密
+	newPassword, err := h.crypto.HashPassword(request.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "密码加密失败"})
+		return
+	}
+	existUser.Password = newPassword
+
+	// 3, 插入数据
+	err = h.repo.UpdateByID(existUser)
+	if err != nil {
+		log.Println(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
