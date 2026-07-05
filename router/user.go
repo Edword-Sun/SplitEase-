@@ -283,11 +283,15 @@ func (h *UserHandler) UpdateByID(c *gin.Context) {
 	if len(newUser.Name) > 0 {
 		getUser.Name = newUser.Name
 	}
-	if len(*newUser.Email) > 0 {
-		getUser.Email = newUser.Email
+	if newUser.Email != nil {
+		if len(*newUser.Email) > 0 {
+			getUser.Email = newUser.Email
+		}
 	}
-	if len(*newUser.PhoneNumber) > 0 {
-		getUser.PhoneNumber = newUser.PhoneNumber
+	if newUser.PhoneNumber != nil {
+		if len(*newUser.PhoneNumber) > 0 {
+			getUser.PhoneNumber = newUser.PhoneNumber
+		}
 	}
 	getUser.UpdateTime = time.Now()
 
