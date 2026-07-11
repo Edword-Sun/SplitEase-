@@ -71,7 +71,8 @@ func (r *UserRepository) Find(user *model.User) (error, *model.User) {
 	err := query.First(&result).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("数据不存在"), nil
+			log.Println("user not found")
+			return nil, nil
 		}
 		log.Println(err)
 		return errors.New("内部错误"), nil

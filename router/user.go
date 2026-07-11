@@ -87,6 +87,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	//request.CreateTime = time.Now()
 	//request.UpdateTime = time.Now()
 
+	// 1, 验证密码模式
 	if request.IsSimple == 1 {
 		// 验证密码规范
 		if err := validatePassword(request.User.Password); err != nil {
@@ -95,6 +96,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		}
 	}
 
+	// 2, 密码加密
 	// 密码哈希加密
 	hashedPassword, err := h.crypto.HashPassword(request.User.Password)
 	if err != nil {
@@ -106,6 +108,25 @@ func (h *UserHandler) Register(c *gin.Context) {
 	// 处理空字符串为 NULL
 	h.handleEmptyStrings(&request.User)
 
+	// 3, 因为accountName不能重复, 所以检查accountName
+	findUser := model.User{
+		AccountName: request.User.AccountName,
+	}
+	err, existUser := h.repo.Find(&findUser)
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if existUser != nil {
+		if existUser.AccountName == request.User.AccountName {
+			log.Println("账号名重复")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "账号名重复"})
+			return
+		}
+	}
+
+	// 4, 插入
 	if err = h.repo.Create(&request.User); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
