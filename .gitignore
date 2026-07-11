@@ -20,9 +20,9 @@ web/.vite/
 !.env.example
 
 # IDE
-#.idea/
+.idea/
 *.iml
-#.vscode/
+.vscode/
 *.swp
 *~
 
