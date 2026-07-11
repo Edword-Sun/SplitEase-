@@ -54,6 +54,11 @@ func (h *TripHandler) Add(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if len(request.Creator) <= 0 {
+		log.Println("创建trip:无用户id")
+		c.JSON(http.StatusBadRequest, gin.H{"message": "无用户id"})
+		return
+	}
 
 	id := uuid.NewV4().String()
 	request.ID = id
