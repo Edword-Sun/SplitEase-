@@ -12,6 +12,7 @@ FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /usr/share/zoneinfo/Asia/Shanghai /usr/share/zoneinfo/Asia/Shanghai
 ENV TZ=Asia/Shanghai
+ENV HTTP_URLS=http://+:8080
 COPY --from=builder /main /main
 EXPOSE 8080
 ENTRYPOINT ["/main"]

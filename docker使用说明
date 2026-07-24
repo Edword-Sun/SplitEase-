@@ -1,0 +1,14 @@
+# 只构建
+.\buildImageBackend.ps1
+.\web\buildImageFrontend.ps1
+
+# 只推送（会自动读取上次 build 写入的 tag）
+.\pushToHubBackend.ps1
+.\web\pushToHubFrontend.ps1
+
+# 指定同一 tag
+.\buildImageBackend.ps1 -Tag v1.0.0
+.\pushToHubBackend.ps1 -Tag v1.0.0
+
+# 原来的一键流程仍然可用
+.\push_images.ps1 -Registry edwordddddddddd -Tag v1.0.0
