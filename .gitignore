@@ -31,6 +31,9 @@ web/.vite/
 Thumbs.db
 Desktop.ini
 
+# Docker build helpers (local tag cache)
+.docker-image-tag.*
+
 # Logs
 *.log
 npm-debug.log*

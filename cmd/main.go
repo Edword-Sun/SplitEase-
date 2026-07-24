@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -54,5 +55,17 @@ func main() {
 		})
 	}
 
-	r.Run(":8080") // listen and serve on 0.0.0.0:8080
+	r.Run(listenAddr())
+}
+
+func listenAddr() string {
+	urls := os.Getenv("HTTP_URLS")
+	if urls == "" {
+		return ":8080"
+	}
+	urls = strings.TrimPrefix(urls, "http://")
+	if after, ok := strings.CutPrefix(urls, "+:"); ok {
+		return ":" + after
+	}
+	return urls
 }
