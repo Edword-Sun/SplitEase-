@@ -61,34 +61,34 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-4 sm:py-12 px-4 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md animate-in fade-in slide-in-from-top-4 duration-500">
-        <div className="flex justify-center mb-4 sm:mb-8">
-          <div className="w-10 h-10 sm:w-16 sm:h-16 bg-blue-600 rounded-[16px] sm:rounded-[24px] flex items-center justify-center text-white shadow-2xl shadow-blue-200 rotate-3">
-            <span className="text-xl sm:text-3xl font-black italic">S</span>
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-4 px-4 lg:px-8">
+      <div className="mx-auto w-full max-w-md animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="flex justify-center mb-3">
+          <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-2xl shadow-blue-200 rotate-3">
+            <span className="text-lg font-black italic">S</span>
           </div>
         </div>
-        <h2 className="text-center text-xl sm:text-3xl font-black text-gray-900 tracking-tight">
+        <h2 className="text-center text-lg font-black text-gray-900 tracking-tight">
           {isLogin ? '欢迎回来' : '开启分账之旅'}
         </h2>
-        <p className="mt-1 sm:mt-2 text-center text-xs sm:text-base text-gray-500 font-medium">
+        <p className="mt-1 text-center text-[10px] text-gray-500 font-medium">
           {isLogin ? '登录以管理您的分账记录' : '注册 SplitEase 账户'}
         </p>
       </div>
 
-      <div className="mt-6 sm:mt-8 sm:mx-auto sm:w-full sm:max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div className="bg-white py-6 px-5 sm:py-8 sm:px-10 shadow-2xl shadow-gray-200/50 rounded-[24px] sm:rounded-[32px] border border-gray-100 relative">
+      <div className="mt-5 mx-auto w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="bg-white py-5 px-4 shadow-2xl shadow-gray-200/50 rounded-2xl border border-gray-100 relative">
           {!isLogin && (
             <button
               onClick={() => setIsLogin(true)}
-              className="absolute left-5 top-6 sm:left-6 sm:top-8 flex items-center gap-1 text-gray-400 hover:text-blue-600 transition-all font-bold group"
+              className="absolute left-4 top-5 flex items-center gap-1 text-gray-400 hover:text-blue-600 transition-all font-bold group"
             >
-              <ChevronLeft size={18} className="sm:w-5 sm:h-5 group-hover:-translate-x-0.5 transition-transform" />
-              <span className="text-xs sm:text-sm">返回</span>
+              <ChevronLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
+              <span className="text-[10px]">返回</span>
             </button>
           )}
 
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-4">
             {!isLogin && (
               <div>
@@ -177,11 +177,11 @@ const LoginPage = () => {
             </div>
           )}
 
-          <div>
+          <div className="pt-2">
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 transition-all shadow-lg shadow-blue-100 active:scale-[0.98]"
+              className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-all shadow-lg shadow-blue-50 active:scale-[0.98]"
             >
               {loading ? '正在处理...' : isLogin ? '立即登录' : '注册账号'}
             </button>
@@ -189,21 +189,21 @@ const LoginPage = () => {
 
           {isLogin && (
             <>
-              <div className="mt-2">
+              <div className="mt-1">
                 <button
                   type="button"
                   onClick={() => setIsLogin(!isLogin)}
-                  className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all shadow-lg shadow-blue-100 active:scale-[0.98]"
+                  className="group relative w-full flex justify-center py-2 px-4 border-2 border-blue-50 text-sm font-bold rounded-xl text-blue-600 bg-blue-50/50 hover:bg-blue-50 transition-all active:scale-[0.98]"
                 >
-                  注册
+                  没有账号？去注册
                 </button>
               </div>
 
-              <div className="mt-2 flex justify-center">
+              <div className="mt-1 flex justify-center">
                 <button
                   type="button"
                   onClick={() => navigate('/forget-password')}
-                  className="group relative w-[40%] flex justify-center py-2 px-4 text-sm font-bold rounded-xl text-gray-400 hover:text-blue-600 bg-transparent transition-all active:scale-[0.98]"
+                  className="group relative flex justify-center py-1 px-4 text-[10px] font-bold rounded-xl text-gray-400 hover:text-blue-600 bg-transparent transition-all active:scale-[0.98]"
                 >
                   忘记密码
                 </button>

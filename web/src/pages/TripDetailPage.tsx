@@ -295,7 +295,7 @@ const TripDetailPage = () => {
 
   if (loading && !trip) return (
     <div className="flex flex-col items-center justify-center py-20">
-      <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent mb-4"></div>
       <p className="text-gray-500 animate-pulse">加载中...</p>
     </div>
   );
@@ -313,22 +313,22 @@ const TripDetailPage = () => {
   );
 
   return (
-    <div className="space-y-4 sm:space-y-6 pb-20">
+    <div className="space-y-4 pb-20">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6">
-        <div className="space-y-2 sm:space-y-3">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
+        <div className="space-y-1.5">
           <button 
             onClick={() => navigate('/')}
-            className="flex items-center gap-1 text-gray-400 hover:text-blue-600 transition-colors text-xs sm:text-sm font-medium"
+            className="flex items-center gap-1 text-gray-400 hover:text-blue-600 transition-colors text-[10px] font-medium"
           >
-            <ChevronLeft size={14} className="sm:w-4 sm:h-4" />
+            <ChevronLeft size={12} />
             返回列表
           </button>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight">{trip.name}</h2>
-          <p className="text-gray-500 text-[10px] sm:text-xs max-w-xl">{trip.description || '暂无描述'}</p>
-          <div className="flex flex-wrap gap-1.5 sm:gap-2 pt-1 items-center">
-            <div className="flex items-center gap-1 text-gray-400 text-sm sm:text-base mr-1 sm:mr-2">
-              <Users size={16} className="sm:w-[18px] sm:h-[18px]" />
+          <h2 className="text-xl font-extrabold text-gray-900 leading-tight">{trip.name}</h2>
+          <p className="text-gray-500 text-[9px] max-w-xl">{trip.description || '暂无描述'}</p>
+          <div className="flex flex-wrap gap-1 pt-0.5 items-center">
+            <div className="flex items-center gap-1 text-gray-400 text-xs mr-1">
+              <Users size={14} />
               <span>成员:</span>
             </div>
             {trip.members?.map((m, i) => {
@@ -357,14 +357,14 @@ const TripDetailPage = () => {
             })}
             <button 
               onClick={() => setShowAddMemberModal(true)}
-              className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold hover:bg-blue-100 transition-colors flex items-center gap-1 border border-blue-100"
+              className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-bold hover:bg-blue-100 transition-colors flex items-center gap-1 border border-emerald-100"
             >
               <Plus size={12} />
               添加
             </button>
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2.5">
           <button
             onClick={() => {
               setEditingBillId(null);
@@ -378,44 +378,44 @@ const TripDetailPage = () => {
               });
               setShowAddBillModal(true);
             }}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 font-bold active:scale-95 text-sm sm:text-base"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-xl hover:shadow-xl hover:shadow-blue-100 transition-all shadow-lg shadow-emerald-50 font-bold active:scale-95 text-xs"
           >
-            <Receipt size={18} className="sm:w-5 sm:h-5" />
+            <Receipt size={16} />
             记一笔
           </button>
           <button
             onClick={handleSplit}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-2xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 font-bold active:scale-95 text-sm sm:text-base"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 font-bold active:scale-95 text-xs"
           >
-            <ArrowRightLeft size={18} className="sm:w-5 sm:h-5" />
+            <ArrowRightLeft size={16} />
             分账
           </button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex bg-gray-100 p-1.5 rounded-2xl mb-6 sm:mb-8 sticky top-[72px] sm:top-[88px] z-30 shadow-sm backdrop-blur-md bg-white/50 border border-white/20">
+      <div className="flex bg-gray-100 p-1 rounded-xl mb-4 sticky top-[68px] z-30 shadow-sm backdrop-blur-md bg-white/50 border border-white/20">
         <button
           onClick={() => setActiveTab('bills')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 sm:py-3.5 rounded-xl font-bold transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold transition-all ${
             activeTab === 'bills' 
-              ? 'bg-white text-blue-600 shadow-md scale-[1.02]' 
+              ? 'bg-white text-emerald-600 shadow-sm scale-[1.01]' 
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          <Receipt size={18} className="hidden sm:block" />
-          <span className="text-sm sm:text-base">账单明细</span>
+          <Receipt size={16} className="hidden sm:block" />
+          <span className="text-xs">账单明细</span>
         </button>
         <button
           onClick={() => setActiveTab('split')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 sm:py-3.5 rounded-xl font-bold transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold transition-all ${
             activeTab === 'split' 
-              ? 'bg-white text-blue-600 shadow-md scale-[1.02]' 
+              ? 'bg-white text-emerald-600 shadow-sm scale-[1.01]' 
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          <ArrowRightLeft size={18} className="hidden sm:block" />
-          <span className="text-sm sm:text-base">分账结果</span>
+          <ArrowRightLeft size={16} className="hidden sm:block" />
+          <span className="text-xs">分账结果</span>
         </button>
       </div>
 
@@ -430,7 +430,7 @@ const TripDetailPage = () => {
                   onClick={() => setFilterCategory(null)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border-2 ${
                     filterCategory === null 
-                      ? 'border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-100' 
+                      ? 'border-emerald-600 bg-emerald-600 text-white shadow-lg shadow-emerald-100' 
                       : 'border-gray-100 bg-white text-gray-400 hover:border-blue-200'
                   }`}
                 >
@@ -448,7 +448,7 @@ const TripDetailPage = () => {
                       onClick={() => setFilterCategory(cat.id)}
                       className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border-2 ${
                         filterCategory === cat.id 
-                          ? 'border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-100' 
+                          ? 'border-emerald-600 bg-emerald-600 text-white shadow-lg shadow-emerald-100' 
                           : 'border-gray-100 bg-white text-gray-400 hover:border-blue-200'
                       }`}
                     >
@@ -467,7 +467,7 @@ const TripDetailPage = () => {
                 <p className="text-gray-400 font-medium">还没有账单，快去记一笔吧</p>
                 <button 
                   onClick={() => setShowAddBillModal(true)}
-                  className="mt-4 text-blue-600 font-bold text-sm hover:underline"
+                  className="mt-4 text-emerald-600 font-bold text-sm hover:underline"
                 >
                   立即添加第一笔
                 </button>
@@ -485,7 +485,7 @@ const TripDetailPage = () => {
                         <p className="text-gray-400 font-medium">该分类下暂无账单</p>
                         <button 
                           onClick={() => setFilterCategory(null)}
-                          className="mt-4 text-blue-600 font-bold text-sm hover:underline"
+                          className="mt-4 text-emerald-600 font-bold text-sm hover:underline"
                         >
                           查看全部
                         </button>
@@ -496,17 +496,17 @@ const TripDetailPage = () => {
                     const category = getCategoryById(bill.category);
                     const Icon = category.icon;
                     return (
-                      <div key={bill.id} className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-50 shadow-sm flex items-center justify-between group hover:border-blue-100 hover:shadow-md transition-all">
-                        <div className="flex items-center gap-3 sm:gap-5 flex-1 min-w-0">
-                          <div className={`w-11 h-11 sm:w-14 sm:h-14 shrink-0 ${category.color} rounded-xl sm:rounded-2xl flex items-center justify-center transition-all shadow-sm`}>
-                            <Icon size={20} className="sm:w-7 sm:h-7" />
+                      <div key={bill.id} className="bg-white p-3 rounded-xl border border-gray-50 shadow-sm flex items-center justify-between group hover:border-blue-100 hover:shadow-md transition-all">
+                        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                          <div className={`w-9 h-9 shrink-0 ${category.color} rounded-lg flex items-center justify-center transition-all shadow-sm`}>
+                            <Icon size={18} />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h4 className="font-bold text-gray-900 text-base sm:text-lg leading-tight truncate">{bill.name}</h4>
-                            <div className="flex items-center gap-1.5 mt-0.5 sm:mt-1">
-                              <span className="text-[10px] sm:text-xs text-gray-400 whitespace-nowrap">{formatDate(bill.create_time)}</span>
+                            <h4 className="font-bold text-gray-900 text-sm leading-tight truncate">{bill.name}</h4>
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <span className="text-[9px] text-gray-400 whitespace-nowrap">{formatDate(bill.create_time)}</span>
                               <span className="w-0.5 h-0.5 bg-gray-300 rounded-full"></span>
-                              <span className="text-[10px] sm:text-xs text-gray-400 truncate">
+                              <span className="text-[9px] text-gray-400 truncate">
                                 付款人: <span className="text-gray-600 font-medium">
                                   {(() => {
                                     const actualPayerId = bill.payer_id || bill.creator;
@@ -516,26 +516,26 @@ const TripDetailPage = () => {
                               </span>
                             </div>
                             {bill.involved_members && bill.involved_members.length > 0 && (
-                              <div className="flex items-center gap-1.5 mt-2 overflow-x-auto no-scrollbar max-w-full">
-                                <span className="text-[9px] sm:text-[10px] text-gray-300 font-bold uppercase tracking-tighter whitespace-nowrap">分摊:</span>
-                                <div className="flex -space-x-1.5 shrink-0">
+                              <div className="flex items-center gap-1 mt-1.5 overflow-x-auto no-scrollbar max-w-full">
+                                <span className="text-[8px] text-gray-300 font-bold uppercase tracking-tighter whitespace-nowrap">分摊:</span>
+                                <div className="flex -space-x-1 shrink-0">
                                   {bill.involved_members.map((mId, idx) => (
                                     <div 
                                       key={mId} 
-                                      className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-white bg-blue-50 flex items-center justify-center text-[7px] sm:text-[8px] font-bold text-blue-500 shadow-sm"
+                                      className="w-3.5 h-3.5 rounded-full border border-white bg-emerald-50 flex items-center justify-center text-[6px] font-bold text-emerald-500 shadow-sm"
                                       title={getDisplayName(mId)}
                                     >
                                       {getDisplayName(mId)[0] || 'U'}
                                     </div>
                                   ))}
                                 </div>
-                                <span className="text-[9px] sm:text-[10px] text-gray-400 font-medium truncate max-w-[60px] sm:max-w-none">
+                                <span className="text-[8px] text-gray-400 font-medium truncate max-w-[50px]">
                                   {bill.involved_members.length === (trip?.members?.length || 0) 
                                     ? '全员' 
                                     : bill.involved_members.map(id => getDisplayName(id)).join(', ')}
                                 </span>
                                 {bill.involved_members.length > 0 && bill.involved_members.length < (trip?.members?.length || 0) && (
-                                  <span className="ml-1 px-1 sm:px-1.5 py-0.5 bg-blue-100 text-blue-600 text-[7px] sm:text-[8px] font-black rounded-md uppercase whitespace-nowrap">
+                                  <span className="ml-1 px-1 py-0.5 bg-emerald-100 text-emerald-600 text-[6px] font-black rounded-md uppercase whitespace-nowrap">
                                     ￥{formatCentToYuan(Math.ceil(bill.cost_cent / bill.involved_members.length))}/人
                                   </span>
                                 )}
@@ -543,25 +543,25 @@ const TripDetailPage = () => {
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-3 sm:gap-6 shrink-0 ml-2">
+                        <div className="flex items-center gap-3 shrink-0 ml-2">
                           <div className="text-right">
-                            <p className="text-lg sm:text-2xl font-black text-gray-900">￥{formatCentToYuan(bill.cost_cent)}</p>
-                            <p className="text-[10px] text-gray-400 mt-0.5 italic">{category.label}</p>
+                            <p className="text-base font-black text-gray-900">￥{formatCentToYuan(bill.cost_cent)}</p>
+                            <p className="text-[9px] text-gray-400 mt-0.5 italic">{category.label}</p>
                           </div>
                           <div className="flex flex-col gap-1 transition-all">
                             <button 
                               onClick={() => handleEditClick(bill)}
-                              className="p-1.5 sm:p-2 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg sm:rounded-xl transition-all"
+                              className="p-1 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
                               title="编辑"
                             >
-                              <Pencil size={16} className="sm:w-[18px] sm:h-[18px]" />
+                              <Pencil size={14} />
                             </button>
                             <button 
                               onClick={() => handleDeleteBill(bill.id)}
-                              className="p-1.5 sm:p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg sm:rounded-xl transition-all"
+                              className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                               title="删除"
                             >
-                              <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
+                              <Trash2 size={14} />
                             </button>
                           </div>
                         </div>
@@ -588,8 +588,8 @@ const TripDetailPage = () => {
                 {splitResults.user_summary && splitResults.user_summary.length > 0 && (
                   <div className="bg-white border border-gray-100 rounded-[24px] overflow-hidden shadow-sm">
                     <div className="px-4 sm:px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-gray-700">
-                        <ShieldCheck size={18} className="text-blue-500" />
+                      <div className="flex items-center gap-2 text-emerald-600">
+                        <ShieldCheck size={18} />
                         <h4 className="font-bold text-sm sm:text-base">收支审计表</h4>
                       </div>
                       <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">单位：元</span>
@@ -613,7 +613,7 @@ const TripDetailPage = () => {
                                 <td className="px-4 sm:px-6 py-4 text-gray-600 text-right font-medium">￥{summary.total_paid}</td>
                                 <td className="px-4 sm:px-6 py-4 text-gray-600 text-right font-medium">￥{summary.total_should}</td>
                                 <td className={`px-4 sm:px-6 py-4 text-right font-black ${
-                                  balance > 0 ? 'text-green-600' : balance < 0 ? 'text-red-600' : 'text-gray-400'
+                                  balance > 0 ? 'text-emerald-600' : balance < 0 ? 'text-red-600' : 'text-gray-400'
                                 }`}>
                                   {balance > 0 ? `+${summary.final_balance}` : summary.final_balance}
                                 </td>
@@ -623,7 +623,7 @@ const TripDetailPage = () => {
                         </tbody>
                       </table>
                     </div>
-                    <div className="px-4 sm:px-6 py-3 bg-blue-50/50 text-[10px] text-blue-600 font-bold flex items-center gap-2">
+                    <div className="px-4 sm:px-6 py-3 bg-emerald-50/50 text-[10px] text-emerald-600 font-bold flex items-center gap-2">
                       <Info size={12} />
                       <span>计算逻辑：实际支付 - 应摊费用 = 最终结算 (正数为应收，负数为应付)</span>
                     </div>
@@ -631,12 +631,12 @@ const TripDetailPage = () => {
                 )}
 
                 <div className="space-y-4">
-                  <div className="bg-blue-50 border border-blue-100 rounded-[24px] p-6 mb-6">
-                    <div className="flex items-center gap-3 text-blue-700 mb-2">
+                  <div className="bg-emerald-50 border border-emerald-100 rounded-[24px] p-6 mb-6">
+                    <div className="flex items-center gap-3 text-emerald-700 mb-2">
                       <Info size={18} />
                       <h4 className="font-bold text-sm sm:text-base">分账方案已生成</h4>
                     </div>
-                    <p className="text-xs sm:text-sm text-blue-600 font-medium leading-relaxed">
+                    <p className="text-xs sm:text-sm text-emerald-600 font-medium leading-relaxed">
                       基于所有账单，我们计算出了最优的转账方案。只需按照以下步骤转账即可清空所有债务。
                     </p>
                   </div>
@@ -669,11 +669,11 @@ const TripDetailPage = () => {
                                 转账
                               </div>
                               <div className="flex flex-col items-center py-2">
-                                <div className="text-xl sm:text-2xl font-black text-blue-600 tracking-tighter">
+                                <div className="text-xl sm:text-2xl font-black text-emerald-600 tracking-tighter">
                                   <span className="text-sm mr-0.5">￥</span>{amount}
                                 </div>
-                                <ArrowRight className="text-blue-200 mt-1 hidden sm:block" size={24} />
-                                <ArrowDown className="text-blue-200 mt-1 sm:hidden" size={24} />
+                                <ArrowRight className="text-emerald-200 mt-1 hidden sm:block" size={24} />
+                                <ArrowDown className="text-emerald-200 mt-1 sm:hidden" size={24} />
                               </div>
                             </div>
 
@@ -701,46 +701,46 @@ const TripDetailPage = () => {
       {/* Add Bill Modal */}
       {showAddBillModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-          <div className="bg-white w-full max-w-2xl rounded-t-[32px] sm:rounded-[32px] shadow-2xl overflow-hidden animate-in slide-in-from-bottom sm:zoom-in duration-300 max-h-[95vh] flex flex-col">
-            <div className="px-6 sm:px-8 py-5 sm:py-6 border-b flex items-center justify-between bg-blue-600 text-white shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                  <Receipt size={20} />
+          <div className="bg-white w-full max-w-xl rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom sm:zoom-in duration-300 max-h-[95vh] flex flex-col">
+            <div className="px-5 py-3.5 border-b flex items-center justify-between bg-blue-600 text-white shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                  <Receipt size={16} />
                 </div>
                 <div>
-                  <h3 className="text-lg sm:text-xl font-bold leading-none">{editingBillId ? '编辑账单' : '记一笔'}</h3>
-                  <p className="text-[10px] sm:text-xs text-blue-100 mt-1 uppercase tracking-wider font-bold">
+                  <h3 className="text-base font-bold leading-none">{editingBillId ? '编辑账单' : '记一笔'}</h3>
+                  <p className="text-[9px] text-blue-100 mt-1 uppercase tracking-wider font-bold">
                     {editingBillId ? '修改账单详情' : '记录新的旅行开支'}
                   </p>
                 </div>
               </div>
               <button onClick={() => setShowAddBillModal(false)} className="hover:rotate-90 transition-all duration-300 p-1">
-                <Plus size={24} className="rotate-45" />
+                <Plus size={20} className="rotate-45" />
               </button>
             </div>
             
-            <form onSubmit={handleAddBill} className="p-6 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto">
-              <div className="grid grid-cols-2 gap-4 sm:gap-6">
+            <form onSubmit={handleAddBill} className="p-5 space-y-4 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">账单名称</label>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1.5">账单名称</label>
                   <input
                     type="text"
                     required
-                    className="w-full px-4 sm:px-5 py-3 sm:py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
+                    className="w-full px-4 py-2.5 bg-white border border-gray-100 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all font-medium text-sm text-gray-900"
                     placeholder="如：成都老火锅"
                     value={newBill.name}
                     onChange={(e) => setNewBill({ ...newBill, name: e.target.value })}
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">金额 (元)</label>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1.5">金额 (元)</label>
                   <div className="relative">
-                    <span className="absolute left-4 top-3 sm:top-3.5 text-gray-400 font-black">￥</span>
+                    <span className="absolute left-4 top-2.5 text-gray-400 font-black text-sm">￥</span>
                     <input
                       type="number"
                       step="0.01"
                       required
-                      className="w-full pl-10 pr-4 sm:pr-5 py-3 sm:py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-black text-lg sm:text-xl text-gray-900"
+                      className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-100 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all font-black text-lg text-gray-900"
                       placeholder="0.00"
                       value={newBill.cost_yuan}
                       onChange={(e) => setNewBill({ ...newBill, cost_yuan: e.target.value })}
@@ -750,8 +750,8 @@ const TripDetailPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">选择类别</label>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
+                <label className="block text-[11px] font-bold text-gray-700 mb-1.5">选择类别</label>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                   {Object.values(BILL_CATEGORIES).map(cat => {
                     const Icon = cat.icon;
                     return (
@@ -759,37 +759,37 @@ const TripDetailPage = () => {
                         key={cat.id}
                         type="button"
                         onClick={() => setNewBill({ ...newBill, category: cat.id })}
-                        className={`flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-2xl transition-all border-2 ${
+                        className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all border-2 ${
                           newBill.category === cat.id 
-                            ? 'bg-blue-50 border-blue-500 text-blue-600 scale-105 shadow-md shadow-blue-50' 
+                            ? 'bg-emerald-50 border-emerald-500 text-emerald-600 scale-105 shadow-sm shadow-emerald-50' 
                             : 'bg-gray-50 border-transparent text-gray-400 hover:bg-gray-100'
                         }`}
                       >
-                        <Icon size={20} className="sm:w-6 sm:h-6" />
-                        <span className="text-[10px] sm:text-xs font-bold">{cat.label}</span>
+                        <Icon size={16} />
+                        <span className="text-[9px] font-bold">{cat.label}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 sm:gap-6">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">谁付的钱？</label>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1.5">谁付的钱？</label>
                   <div className="relative" ref={payerDropdownRef}>
                     <button
                       type="button"
                       onClick={() => setShowPayerDropdown(!showPayerDropdown)}
-                      className="w-full flex items-center justify-between px-4 sm:px-5 py-3 sm:py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-gray-900 text-base shadow-sm hover:border-blue-200"
+                      className="w-full flex items-center justify-between px-4 py-2.5 bg-white border border-gray-100 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all font-bold text-gray-900 text-sm shadow-sm hover:border-blue-200"
                     >
                       <span className="truncate">
                         {getDisplayName(newBill.payer_id)}
                       </span>
-                      <ChevronDown size={18} className={`text-gray-400 transition-transform duration-200 ${showPayerDropdown ? 'rotate-180' : ''}`} />
+                      <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${showPayerDropdown ? 'rotate-180' : ''}`} />
                     </button>
                     
                     {showPayerDropdown && (
-                      <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl py-2 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+                      <div className="absolute z-50 w-full mt-1.5 bg-white border border-gray-100 rounded-xl shadow-xl py-1.5 max-h-48 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
                         {trip?.members?.map(memberId => (
                           <button
                             key={memberId}
@@ -798,8 +798,8 @@ const TripDetailPage = () => {
                               setNewBill({ ...newBill, payer_id: memberId });
                               setShowPayerDropdown(false);
                             }}
-                            className={`w-full text-left px-5 py-3 text-sm font-bold transition-colors ${
-                              newBill.payer_id === memberId ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
+                            className={`w-full text-left px-4 py-2 text-xs font-bold transition-colors ${
+                              newBill.payer_id === memberId ? 'bg-emerald-50 text-emerald-600' : 'text-gray-700 hover:bg-gray-50'
                             }`}
                           >
                             {getDisplayName(memberId)}
@@ -811,8 +811,8 @@ const TripDetailPage = () => {
                 </div>
 
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">哪些人参与？</label>
-                  <div className="flex flex-wrap gap-1.5 sm:gap-2 p-2 sm:p-3 bg-gray-50 rounded-2xl border border-transparent min-h-[52px]">
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1.5">哪些人参与？</label>
+                  <div className="flex flex-wrap gap-1 p-2 bg-gray-50 rounded-xl border border-transparent min-h-[44px]">
                     {trip?.members?.map(memberId => (
                       <button
                         key={memberId}
@@ -823,9 +823,9 @@ const TripDetailPage = () => {
                             : [...newBill.involved_members, memberId];
                           setNewBill({ ...newBill, involved_members: members });
                         }}
-                        className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold transition-all border ${
+                        className={`px-2 py-1 rounded-lg text-[9px] font-bold transition-all border ${
                           newBill.involved_members.includes(memberId)
-                            ? 'bg-blue-600 border-blue-600 text-white shadow-md'
+                            ? 'bg-emerald-600 border-emerald-600 text-white shadow-md'
                             : 'bg-white border-gray-200 text-gray-500 hover:border-blue-200'
                         }`}
                       >
@@ -842,7 +842,7 @@ const TripDetailPage = () => {
                           involved_members: areAllSelected ? [] : [...allMembers] 
                         });
                       }}
-                      className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-gray-200 text-gray-600 hover:bg-gray-300 transition-all"
+                      className="px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-wider bg-gray-200 text-gray-600 hover:bg-gray-300 transition-all"
                     >
                       {newBill.involved_members.length === (trip?.members?.length || 0) ? '取消全选' : '全选'}
                     </button>
@@ -851,9 +851,9 @@ const TripDetailPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">备注 (可选)</label>
+                <label className="block text-[11px] font-bold text-gray-700 mb-1.5">备注 (可选)</label>
                 <textarea
-                  className="w-full px-4 sm:px-5 py-3 sm:py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-100 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all font-medium text-sm text-gray-900"
                   placeholder="添加更多细节描述..."
                   rows={2}
                   value={newBill.description}
@@ -861,10 +861,10 @@ const TripDetailPage = () => {
                 />
               </div>
 
-              <div className="pt-4 sticky bottom-0 bg-white pb-2 sm:pb-0">
+              <div className="pt-2 sticky bottom-0 bg-white pb-1">
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-lg hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 active:scale-[0.98]"
+                  className="w-full bg-emerald-600 text-white py-3 rounded-xl font-black text-base hover:shadow-xl hover:shadow-emerald-100 transition-all shadow-lg shadow-emerald-50 active:scale-[0.98]"
                 >
                   {editingBillId ? '保存修改' : '确认记账'}
                 </button>
@@ -877,25 +877,25 @@ const TripDetailPage = () => {
       {/* Add Member Modal */}
       {showAddMemberModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-          <div className="bg-white w-full max-w-lg rounded-t-[32px] sm:rounded-[32px] shadow-2xl overflow-hidden animate-in slide-in-from-bottom sm:zoom-in duration-300 max-h-[90vh] flex flex-col">
-            <div className="px-6 sm:px-8 py-4 sm:py-6 border-b flex items-center justify-between bg-blue-600 text-white shrink-0">
-              <div className="flex items-center gap-3">
-                <Users size={20} className="sm:w-6 sm:h-6" />
-                <h3 className="text-lg sm:text-xl font-bold">添加旅行成员</h3>
+          <div className="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom sm:zoom-in duration-300 max-h-[90vh] flex flex-col">
+            <div className="px-5 py-3.5 border-b flex items-center justify-between bg-blue-600 text-white shrink-0">
+              <div className="flex items-center gap-2.5">
+                <Users size={18} />
+                <h3 className="text-base font-bold">添加旅行成员</h3>
               </div>
               <button onClick={handleCloseAddMemberModal} className="hover:rotate-90 transition-all duration-300 p-1">
-                <Plus size={24} className="rotate-45" />
+                <Plus size={20} className="rotate-45" />
               </button>
             </div>
             
-            <div className="p-6 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto">
+            <div className="p-5 space-y-4 overflow-y-auto">
               {/* 虚拟成员添加 */}
-              <div className="space-y-2.5 sm:space-y-3">
-                <label className="block text-sm font-bold text-gray-700">添加虚拟成员 (无需账号)</label>
+              <div className="space-y-2">
+                <label className="block text-[11px] font-bold text-gray-700">添加虚拟成员 (无需账号)</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    className="flex-1 px-4 py-2.5 sm:py-3 bg-gray-50 border-none rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-sm sm:text-base"
+                    className="flex-1 px-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all font-medium text-sm"
                     placeholder="成员称呼，如：小明"
                     value={virtualMemberName}
                     onChange={(e) => setVirtualMemberName(e.target.value)}
@@ -903,66 +903,66 @@ const TripDetailPage = () => {
                   />
                   <button
                     onClick={() => virtualMemberName.trim() && handleAddMember(`virtual/${virtualMemberName.trim()}`)}
-                    className="bg-blue-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold hover:bg-blue-700 transition-all text-sm sm:text-base"
+                    className="bg-emerald-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-emerald-700 transition-all text-xs"
                   >
                     添加
                   </button>
                 </div>
-                <p className="text-[10px] text-gray-400 font-medium px-1 leading-relaxed">虚拟成员仅在本旅行中可见，用于代记账。</p>
+                <p className="text-[9px] text-gray-400 font-medium px-1 leading-relaxed">虚拟成员仅在本旅行中可见，用于代记账。</p>
               </div>
 
-              <div className="relative flex items-center py-1 sm:py-2">
+              <div className="relative flex items-center py-1">
                 <div className="flex-grow border-t border-gray-100"></div>
-                <span className="flex-shrink mx-4 text-gray-300 text-[10px] font-black uppercase tracking-widest">或者</span>
+                <span className="flex-shrink mx-3 text-gray-300 text-[9px] font-black uppercase tracking-widest">或者</span>
                 <div className="flex-grow border-t border-gray-100"></div>
               </div>
 
               {/* 搜索真实用户 */}
-              <div className="space-y-3 sm:space-y-4">
-                <label className="block text-sm font-bold text-gray-700">搜索平台用户</label>
+              <div className="space-y-3">
+                <label className="block text-[11px] font-bold text-gray-700">搜索平台用户</label>
                 <form onSubmit={handleSearchClick} className="flex gap-2">
                   <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                     <input
                       type="text"
-                      className="w-full pl-10 sm:pl-11 pr-4 py-2.5 sm:py-3 bg-gray-50 border-none rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-sm sm:text-base"
-                      placeholder="搜索用户名/手机号"
+                      className="w-full pl-9 pr-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all font-medium text-sm"
+                      placeholder="用户名/手机号"
                       value={searchKeyword}
                       onChange={(e) => setSearchKeyword(e.target.value)}
                     />
                   </div>
                   <button
                     type="submit"
-                    className="bg-gray-900 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold hover:bg-black transition-all text-sm sm:text-base"
+                    className="bg-gray-900 text-white px-4 py-2 rounded-xl font-bold hover:bg-black transition-all text-xs"
                   >
                     搜索
                   </button>
                 </form>
 
-                <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1 custom-scrollbar">
+                <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
                   {searchLoading ? (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                    <div className="text-center py-6">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-500 mx-auto"></div>
                     </div>
                   ) : searchedUsers.length > 0 ? (
                     searchedUsers.map(user => (
-                      <div key={user.id} className="flex items-center justify-between p-2.5 sm:p-3 bg-white border border-gray-50 rounded-xl sm:rounded-2xl hover:border-blue-100 transition-all group">
-                        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                          <div className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 bg-blue-50 text-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center font-bold text-base sm:text-lg">
+                      <div key={user.id} className="flex items-center justify-between p-2 bg-white border border-gray-50 rounded-xl hover:border-blue-100 transition-all group">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 shrink-0 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center font-bold text-sm">
                             {user.name[0]}
                           </div>
                           <div className="min-w-0">
-                            <p className="font-bold text-gray-900 text-sm sm:text-base truncate">{user.name}</p>
-                            <p className="text-[10px] text-gray-400 font-medium truncate">ID: {user.id.substring(0, 8)}...</p>
+                            <p className="font-bold text-gray-900 text-sm truncate">{user.name}</p>
+                            <p className="text-[9px] text-gray-400 font-medium truncate">ID: {user.id.substring(0, 8)}...</p>
                           </div>
                         </div>
                         <button
                           onClick={() => handleAddMember(user.id)}
                           disabled={trip?.members?.includes(user.id)}
-                          className={`px-3 sm:px-4 py-1.5 sm:py-2 shrink-0 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all ${
+                          className={`px-3 py-1.5 shrink-0 rounded-lg text-[10px] font-bold transition-all ${
                             trip?.members?.includes(user.id)
                               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                              : 'bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white'
+                              : 'bg-emerald-50 text-emerald-600 hover:bg-blue-600 hover:text-white'
                           }`}
                         >
                           {trip?.members?.includes(user.id) ? '已加入' : '添加'}
@@ -970,7 +970,7 @@ const TripDetailPage = () => {
                       </div>
                     ))
                   ) : searchKeyword && (
-                    <div className="text-center py-8 text-gray-400 text-sm font-medium">
+                    <div className="text-center py-6 text-gray-400 text-xs font-medium">
                       未找到相关用户
                     </div>
                   )}
@@ -978,21 +978,21 @@ const TripDetailPage = () => {
 
                 {/* 分页控制 */}
                 {totalSearchedUsers > 5 && (
-                  <div className="flex items-center justify-center gap-3 sm:gap-4 pt-2 border-t border-gray-50 shrink-0">
+                  <div className="flex items-center justify-center gap-3 pt-2 border-t border-gray-50 shrink-0">
                     <button
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="p-1.5 sm:p-2 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:hover:text-gray-400 transition-colors"
+                      className="p-1.5 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:hover:text-gray-400 transition-colors"
                     >
-                      <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
+                      <ChevronLeft size={16} />
                     </button>
-                    <span className="text-[10px] sm:text-xs font-black text-gray-400">第 {currentPage} 页</span>
+                    <span className="text-[9px] font-black text-gray-400">第 {currentPage} 页</span>
                     <button
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage * 5 >= totalSearchedUsers}
-                      className="p-1.5 sm:p-2 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:hover:text-gray-400 transition-colors"
+                      className="p-1.5 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:hover:text-gray-400 transition-colors"
                     >
-                      <ArrowRight size={18} className="sm:w-5 sm:h-5" />
+                      <ArrowRight size={16} />
                     </button>
                   </div>
                 )}
