@@ -46,33 +46,33 @@ const ForgetPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-6 px-4 lg:px-8">
+      <div className="mx-auto w-full max-w-md">
         <button 
           onClick={() => navigate('/login')}
-          className="mb-4 sm:mb-8 flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors font-medium text-sm sm:text-base"
+          className="mb-4 flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors font-medium text-[10px]"
         >
-          <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
+          <ChevronLeft size={16} />
           <span>返回登录</span>
         </button>
 
-        <div className="bg-white py-6 px-5 sm:py-8 sm:px-10 shadow-2xl shadow-gray-200/50 rounded-[24px] sm:rounded-[32px] border border-gray-100">
-          <div className="text-center mb-6 sm:mb-8">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-50 rounded-xl sm:rounded-2xl flex items-center justify-center text-blue-600 mx-auto mb-3 sm:mb-4">
-              <ShieldCheck size={28} className="sm:w-8 sm:h-8" />
+        <div className="bg-white py-5 px-4 shadow-2xl shadow-gray-200/50 rounded-2xl border border-gray-100">
+          <div className="text-center mb-6">
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mx-auto mb-3">
+              <ShieldCheck size={28} />
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-gray-900">找回密码</h2>
-            <p className="text-gray-500 mt-1 sm:mt-2 text-xs sm:text-sm">请输入您的账号和新密码</p>
+            <h2 className="text-xl font-black text-gray-900">找回密码</h2>
+            <p className="text-gray-500 mt-1 text-[10px]">请输入您的账号和新密码</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
-            <div className="space-y-3 sm:space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-3">
               <div>
-                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1">账号名称</label>
+                <label className="block text-[10px] font-bold text-gray-700 mb-1">账号名称</label>
                 <input
                   type="text"
                   required
-                  className="block w-full px-4 py-2.5 sm:py-3 border border-gray-100 bg-gray-50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm sm:text-base text-gray-900"
+                  className="block w-full px-4 py-2.5 border border-gray-100 bg-gray-50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm text-gray-900"
                   placeholder="请输入您的账号"
                   value={formData.account_name}
                   onChange={(e) => setFormData({ ...formData, account_name: e.target.value })}
@@ -80,13 +80,13 @@ const ForgetPasswordPage = () => {
               </div>
 
               <div>
-                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1">新密码</label>
+                <label className="block text-[10px] font-bold text-gray-700 mb-1">新密码</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 sm:w-[18px] sm:h-[18px]" size={16} />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                   <input
                     type={showPassword ? "text" : "password"}
                     required
-                    className="block w-full pl-10 pr-12 py-2.5 sm:py-3 border border-gray-100 bg-gray-50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm sm:text-base text-gray-900"
+                    className="block w-full pl-10 pr-12 py-2.5 border border-gray-100 bg-gray-50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm text-gray-900"
                     placeholder="请输入新密码"
                     value={formData.new_password}
                     onChange={(e) => setFormData({ ...formData, new_password: e.target.value })}
@@ -96,19 +96,19 @@ const ForgetPasswordPage = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    {showPassword ? <Eye size={18} className="sm:w-5 sm:h-5" /> : <EyeOff size={18} className="sm:w-5 sm:h-5" />}
+                    {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1">确认新密码</label>
+                <label className="block text-[10px] font-bold text-gray-700 mb-1">确认新密码</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 sm:w-[18px] sm:h-[18px]" size={16} />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     required
-                    className="block w-full pl-10 pr-12 py-2.5 sm:py-3 border border-gray-100 bg-gray-50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm sm:text-base text-gray-900"
+                    className="block w-full pl-10 pr-12 py-2.5 border border-gray-100 bg-gray-50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm text-gray-900"
                     placeholder="请再次输入新密码"
                     value={formData.confirm_password}
                     onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })}
@@ -118,15 +118,15 @@ const ForgetPasswordPage = () => {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    {showConfirmPassword ? <Eye size={18} className="sm:w-5 sm:h-5" /> : <EyeOff size={18} className="sm:w-5 sm:h-5" />}
+                    {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                   </button>
                 </div>
               </div>
             </div>
 
             {message.text && (
-              <div className={`p-3 sm:p-4 rounded-xl border text-[11px] sm:text-sm font-bold ${
-                message.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-red-50 border-red-100 text-red-600'
+              <div className={`p-3 rounded-xl border text-[11px] font-bold ${
+                message.type === 'success' ? 'bg-blue-50 border-blue-100 text-blue-600' : 'bg-red-50 border-red-100 text-red-600'
               }`}>
                 {message.text}
               </div>
@@ -135,7 +135,7 @@ const ForgetPasswordPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-3 sm:py-3.5 px-4 border border-transparent text-sm sm:text-base font-black rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 transition-all shadow-lg shadow-blue-100 active:scale-[0.98]"
+              className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-black rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-all shadow-lg shadow-blue-100 active:scale-[0.98]"
             >
               {loading ? '正在处理...' : '重置密码'}
             </button>

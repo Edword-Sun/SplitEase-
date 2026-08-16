@@ -62,33 +62,33 @@ const ProfilePage = () => {
   if (!user) return null;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 sm:space-y-8 pb-10">
-      <div className="flex items-center gap-3 sm:gap-4">
+    <div className="max-w-2xl mx-auto space-y-4 pb-10">
+      <div className="flex items-center gap-3">
         <button 
           onClick={() => navigate(-1)}
-          className="p-2 hover:bg-white rounded-full transition-colors text-gray-400 hover:text-gray-600 shrink-0"
+          className="p-1.5 hover:bg-white rounded-full transition-colors text-gray-400 hover:text-gray-600 shrink-0"
         >
-          <ChevronLeft size={24} />
+          <ChevronLeft size={20} />
         </button>
-        <h2 className="text-2xl sm:text-3xl font-black text-gray-900">个人设置</h2>
+        <h2 className="text-xl font-black text-gray-900">个人设置</h2>
       </div>
 
-      <div className="bg-white rounded-[24px] sm:rounded-[32px] border border-gray-50 shadow-sm overflow-hidden">
-        <div className="h-24 sm:h-32 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
-        <div className="px-5 sm:px-8 pb-8">
-          <div className="relative -mt-10 sm:-mt-12 mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-[20px] sm:rounded-3xl p-1 shadow-lg">
-              <div className="w-full h-full bg-blue-50 rounded-[18px] sm:rounded-2xl flex items-center justify-center text-blue-500">
-                <UserIcon size={40} className="sm:size-[48px]" />
+      <div className="bg-white rounded-2xl border border-gray-50 shadow-sm overflow-hidden">
+        <div className="h-20 bg-blue-600"></div>
+        <div className="px-4 pb-6">
+          <div className="relative -mt-8 mb-4 flex flex-col sm:flex-row sm:items-end gap-3">
+            <div className="w-16 h-16 bg-white rounded-2xl p-1 shadow-lg">
+              <div className="w-full h-full bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                <UserIcon size={32} />
               </div>
             </div>
-            <div className="pb-1 sm:pb-2">
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-900">{user.name}</h3>
-              <p className="text-gray-400 text-xs sm:text-sm font-medium uppercase tracking-wider">@{user.account_name}</p>
+            <div className="pb-1">
+              <h3 className="text-lg font-bold text-gray-900">{user.name}</h3>
+              <p className="text-gray-400 text-[10px] font-medium uppercase tracking-wider">@{user.account_name}</p>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {message.text && (
               <div className={`p-4 rounded-2xl border ${
                 message.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-red-50 border-red-100 text-red-600'
@@ -105,7 +105,7 @@ const ProfilePage = () => {
                   <input
                     type="text"
                     required
-                    className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
+                    className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-emerald-500 outline-none transition-all font-medium text-base text-gray-900"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
@@ -131,7 +131,7 @@ const ProfilePage = () => {
                   <Mail className="absolute left-4 top-3.5 text-gray-300" size={18} />
                   <input
                     type="email"
-                    className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
+                    className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-emerald-500 outline-none transition-all font-medium text-base text-gray-900"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
@@ -144,7 +144,7 @@ const ProfilePage = () => {
                   <Phone className="absolute left-4 top-3.5 text-gray-300" size={18} />
                   <input
                     type="tel"
-                    className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-base text-gray-900"
+                    className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-emerald-500 outline-none transition-all font-medium text-base text-gray-900"
                     value={formData.phone_number}
                     onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
                   />
@@ -156,7 +156,7 @@ const ProfilePage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 font-bold active:scale-95 disabled:opacity-50"
+                className="flex items-center gap-2 bg-emerald-600 text-white px-8 py-4 rounded-2xl hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-100 font-bold active:scale-95 disabled:opacity-50"
               >
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

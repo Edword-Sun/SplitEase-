@@ -2,8 +2,9 @@
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
+  line-height: 1.4;
   font-weight: 400;
+  font-size: 14px; /* 默认使用较小的字体大小 */
 
   color: #213547;
   background-color: #ffffff;
@@ -12,8 +13,11 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%; /* 禁止 iOS 自动调整字体大小 */
+  -webkit-text-size-adjust: 100%;
 }
+
+/* 移除大屏幕下的放大逻辑，保持精简 */
+
 
 * {
   -webkit-tap-highlight-color: transparent; /* 禁止点击高亮 */
