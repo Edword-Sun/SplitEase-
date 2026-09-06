@@ -108,6 +108,16 @@ func (r *UserRepository) FindByIdentity(identity string) (error, *model.User) {
 	return nil, &result
 }
 
+func (r *UserRepository) FindAll() ([]*model.User, error) {
+	var users []*model.User
+	err := r.DB.Find(&users).Error
+	if err != nil {
+		log.Println(err)
+		return nil, errors.New("内部错误")
+	}
+	return users, nil
+}
+
 func (r *UserRepository) List(filter filter2.UserListFilter) (error, []*model.User, int64) {
 	keyword := filter.Keyword
 	res := []*model.User{}

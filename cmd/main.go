@@ -31,11 +31,13 @@ func main() {
 	// Initialize handlers and register routes
 
 	userHandler := router.NewUserHandler(userRepo, hashCrypto)
+	adminHandler := router.NewAdminHandler(userRepo, tripRepo, billRepo, hashCrypto)
 	billHandler := router.NewBillHandler(billRepo)
 	teamHandler := router.NewTeamHandler(teamRepo)
 	tripHandler := router.NewTripHandler(tripRepo, userRepo, billRepo)
 
 	userHandler.Init(r)
+	adminHandler.Init(r)
 	billHandler.Init(r)
 	teamHandler.Init(r)
 	tripHandler.Init(r)

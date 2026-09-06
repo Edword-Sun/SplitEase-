@@ -4,6 +4,8 @@ import ForgetPasswordPage from './pages/ForgetPasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import TripDetailPage from './pages/TripDetailPage';
 import ProfilePage from './pages/ProfilePage';
+import AdminPage from './pages/AdminPage';
+import AdminLoginPage from './pages/AdminLoginPage';
 import Layout from './components/Layout';
 
 const App = () => {
@@ -11,11 +13,13 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/admin" element={<AdminLoginPage />} />
         <Route path="/forget-password" element={<ForgetPasswordPage />} />
         <Route element={<Layout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/trip/:id" element={<TripDetailPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/admin/dashboard" element={<AdminPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

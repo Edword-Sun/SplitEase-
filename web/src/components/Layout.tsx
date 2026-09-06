@@ -1,5 +1,5 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Home, User as UserIcon, Settings } from 'lucide-react';
+import { LogOut, Home, User as UserIcon, Settings, Shield } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { User } from '../types';
 
@@ -80,6 +80,18 @@ const Layout = () => {
             </button>
 
             <div className="w-[1px] h-5 bg-gray-100 mx-1"></div>
+
+            {user.account_name === 'admin' && (
+              <button 
+                onClick={() => navigate('/admin/dashboard')}
+                className={`p-2 rounded-xl transition-all duration-300 active:scale-90 ${
+                  location.pathname === '/admin/dashboard' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-300 hover:text-emerald-500 hover:bg-emerald-50'
+                }`}
+                title="后台管理"
+              >
+                <Shield size={16} />
+              </button>
+            )}
 
             <button 
               onClick={handleLogout}
